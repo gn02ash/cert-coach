@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import { CertificationEditorPage } from "./pages/CertificationEditorPage";
 import { CertificationsPage } from "./pages/CertificationsPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NewPlanPage } from "./pages/NewPlanPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "certifications/:id", element: <CertificationEditorPage /> },
       { path: "certifications/:id/plan", element: <NewPlanPage /> },
       { path: "plans/:id", element: <PlanPage /> },
+      { path: "library", element: <LibraryPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

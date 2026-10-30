@@ -17,8 +17,8 @@ RUN dotnet publish src/CertCoach.Api/CertCoach.Api.csproj -c Release -o /app --n
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
-# Data Protection keys live in a volume so sessions survive restarts; the volume takes this ownership.
-RUN mkdir /keys && chown $APP_UID /keys
+# Data Protection keys and uploaded PDFs live in volumes, which take this ownership when first created.
+RUN mkdir -p /keys /data/uploads && chown $APP_UID /keys /data/uploads
 
 COPY --from=build /app .
 USER $APP_UID

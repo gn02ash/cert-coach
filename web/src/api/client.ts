@@ -20,6 +20,10 @@ export type PlanView = Schemas["PlanView"];
 export type PlanWarning = Schemas["PlanWarning"];
 export type CapacityShortfall = Schemas["CapacityShortfall"];
 export type DayOfWeek = Schemas["DayOfWeek"];
+export type DocumentSummary = Schemas["DocumentSummary"];
+export type DocumentStatus = Schemas["DocumentStatus"];
+export type UpdateDocumentRequest = Schemas["UpdateDocumentRequest"];
+export type AiCapabilities = Schemas["AiCapabilities"];
 
 /** An HTTP error, carrying the problem-details message from the API when there is one. */
 export class ApiError extends Error {
@@ -54,6 +58,22 @@ export async function api<T>(path: string, method: Method = "GET", body?: unknow
   }
 
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+}
+
+/** Posts a multipart form, such as a file upload. The browser sets the multipart boundary. */
+export async function upload<T>(path: string, form: FormData): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { Accept: "application/json", "X-CSRF": "1" },
+    credentials: "same-origin",
+    body: form,
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, await problemMessage(response));
+  }
+
+  return (await response.json()) as T;
 }
 
 async function problemMessage(response: Response): Promise<string> {

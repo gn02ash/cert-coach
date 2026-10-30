@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
+using Pgvector;
 
 #nullable disable
 
@@ -182,6 +184,181 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_skill_areas_domain_id");
 
                     b.ToTable("skill_areas", (string)null);
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Documents.Document", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<Guid?>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.Property<int>("ChunkCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("chunk_count");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_hash");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CustomTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("custom_title");
+
+                    b.Property<string>("EmbeddingModel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("embedding_model");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("error");
+
+                    b.Property<string>("ExtractedTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("extracted_title");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<DateTimeOffset?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_attempt_at");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int?>("PageCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("page_count");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<DateTimeOffset?>("ProcessingStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processing_started_at");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_documents");
+
+                    b.HasIndex("CertificationId")
+                        .HasDatabaseName("ix_documents_certification_id");
+
+                    b.HasIndex("OwnerId", "ContentHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_documents_owner_id_content_hash");
+
+                    b.HasIndex("Status", "NextAttemptAt")
+                        .HasDatabaseName("ix_documents_status_next_attempt_at");
+
+                    b.ToTable("documents", (string)null);
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Documents.DocumentChunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_id");
+
+                    b.Property<Vector>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("vector(1536)")
+                        .HasColumnName("embedding");
+
+                    b.Property<string>("HeadingPath")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("heading_path");
+
+                    b.Property<int>("Index")
+                        .HasColumnType("integer")
+                        .HasColumnName("index");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("PageEnd")
+                        .HasColumnType("integer")
+                        .HasColumnName("page_end");
+
+                    b.Property<int>("PageStart")
+                        .HasColumnType("integer")
+                        .HasColumnName("page_start");
+
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("to_tsvector('english', heading_path || ' ' || text)", true);
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("text");
+
+                    b.Property<int>("TokenCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("token_count");
+
+                    b.HasKey("Id")
+                        .HasName("pk_document_chunks");
+
+                    b.HasIndex("Embedding")
+                        .HasDatabaseName("ix_document_chunks_embedding");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Embedding"), "hnsw");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("Embedding"), new[] { "vector_cosine_ops" });
+
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("ix_document_chunks_owner_id");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_document_chunks_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
+
+                    b.HasIndex("DocumentId", "Index")
+                        .IsUnique()
+                        .HasDatabaseName("ix_document_chunks_document_id_index");
+
+                    b.ToTable("document_chunks", (string)null);
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Planning.StudyPlan", b =>
@@ -388,6 +565,32 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_skill_areas_exam_domains_domain_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Documents.Document", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Certifications.Certification", null)
+                        .WithMany()
+                        .HasForeignKey("CertificationId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_documents_certifications_certification_id");
+
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_documents_users_owner_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Documents.DocumentChunk", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Documents.Document", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_document_chunks_documents_document_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Planning.StudyPlan", b =>

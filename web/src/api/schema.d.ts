@@ -281,6 +281,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListDocuments"];
+        put?: never;
+        /** Upload a PDF. It is processed in the background; poll the list for its status. */
+        post: operations["UploadDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateDocument"];
+        post?: never;
+        delete: operations["DeleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Process a failed document again. */
+        post: operations["RetryDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetDocumentFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -345,6 +411,29 @@ export interface components {
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+        /** @enum {unknown} */
+        DocumentStatus: "Pending" | "Processing" | "Ready" | "Failed";
+        DocumentSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            fileName: string;
+            /** Format: int64 */
+            sizeBytes: number;
+            status: components["schemas"]["DocumentStatus"];
+            error: null | string;
+            /** Format: int32 */
+            pageCount: null | number;
+            /** Format: int32 */
+            chunkCount: number;
+            /** Format: uuid */
+            certificationId: null | string;
+            examCode: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            processedAt: null | string;
+        };
         DomainDraft: {
             name: string;
             /** Format: int32 */
@@ -374,6 +463,8 @@ export interface components {
             weightMaxPercent: number;
             skillAreas: components["schemas"]["SkillAreaView"][];
         };
+        /** Format: binary */
+        IFormFile: string;
         ObjectiveView: {
             /** Format: uuid */
             id: string;
@@ -541,6 +632,11 @@ export interface components {
         };
         TimeZoneRequest: {
             timeZone: string;
+        };
+        UpdateDocumentRequest: {
+            title: string;
+            /** Format: uuid */
+            certificationId: null | string;
         };
         UserProfile: {
             /** Format: uuid */
@@ -1035,6 +1131,143 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlanView"];
                 };
+            };
+        };
+    };
+    ListDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"][];
+                };
+            };
+        };
+    };
+    UploadDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    /** Format: uuid */
+                    certificationId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    UpdateDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    DeleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RetryDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    GetDocumentFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
