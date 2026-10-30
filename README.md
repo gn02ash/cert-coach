@@ -6,6 +6,19 @@ A personal certification study assistant. Paste an exam's official skills outlin
 
 ![Today's session, progress and domain coverage](docs/screenshots/4-dashboard.png)
 
+<details>
+<summary>More screenshots</summary>
+
+| Paste and edit an outline | Preview a plan |
+|---|---|
+| ![Certification editor with the parsed sample outline](docs/screenshots/2-certification-editor.png) | ![Plan preview with study days and hours](docs/screenshots/3-plan-preview.png) |
+
+![The full plan, week by week](docs/screenshots/5-plan.png)
+
+The screenshots are taken by the end-to-end test in CI against `docker compose up`.
+
+</details>
+
 ## Features
 
 **Phase 1: study plan** (this release)
