@@ -1,6 +1,7 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Ask;
 using CertCoach.Application.Certifications;
+using CertCoach.Application.Certifications.Outlines;
 using CertCoach.Application.Dashboard;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<DocumentIngestionService>();
         services.AddScoped<SearchService>();
         services.AddScoped<AskService>();
+        services.AddScoped<AiOutlineParser>();
         return services;
     }
 }

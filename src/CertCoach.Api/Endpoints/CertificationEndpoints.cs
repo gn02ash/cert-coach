@@ -12,6 +12,12 @@ internal static class CertificationEndpoints
             .WithTags("Certifications")
             .WithSummary("Parse a pasted skills outline into an editable draft.");
 
+        api.MapPost("/outlines/parse-ai", (ParseOutlineRequest request, AiOutlineParser parser, CancellationToken ct) =>
+                parser.ParseAsync(request.Text, ct))
+            .WithName("ParseOutlineWithAi")
+            .WithTags("Certifications")
+            .WithSummary("Parse an outline in any layout with the chat model. Needs a chat provider.");
+
         var group = api.MapGroup("/certifications").WithTags("Certifications");
 
         group.MapGet("/", (CertificationService service, CancellationToken ct) => service.ListAsync(ct))
