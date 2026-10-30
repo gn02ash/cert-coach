@@ -3,8 +3,6 @@ using CertCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
-[assembly: AssemblyFixture(typeof(CertCoach.Infrastructure.Tests.PostgresFixture))]
-
 namespace CertCoach.Infrastructure.Tests;
 
 /// <summary>
@@ -31,4 +29,11 @@ public sealed class PostgresFixture : IAsyncLifetime
     }
 
     public ValueTask DisposeAsync() => _container.DisposeAsync();
+}
+
+/// <summary>Database tests join this collection; tests without it run without starting a container.</summary>
+[CollectionDefinition(Name)]
+public sealed class PostgresDatabase : ICollectionFixture<PostgresFixture>
+{
+    public const string Name = "Postgres";
 }

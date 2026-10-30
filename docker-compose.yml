@@ -34,6 +34,14 @@ services:
       Auth__Microsoft__TenantId: ${MICROSOFT_TENANT_ID:-common}
       Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
       Auth__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+      Ai__Chat__Provider: ${AI_CHAT_PROVIDER:-Offline}
+      Ai__Chat__Model: ${AI_CHAT_MODEL:-}
+      Ai__Chat__ApiKey: ${AI_CHAT_API_KEY:-}
+      Ai__Chat__Endpoint: ${AI_CHAT_ENDPOINT:-}
+      Ai__Embeddings__Provider: ${AI_EMBEDDINGS_PROVIDER:-Offline}
+      Ai__Embeddings__Model: ${AI_EMBEDDINGS_MODEL:-}
+      Ai__Embeddings__ApiKey: ${AI_EMBEDDINGS_API_KEY:-}
+      Ai__Embeddings__Endpoint: ${AI_EMBEDDINGS_ENDPOINT:-}
     volumes:
       - keys:/keys
     depends_on:
