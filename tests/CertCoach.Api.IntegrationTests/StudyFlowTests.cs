@@ -101,23 +101,17 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Overdue_sessions_are_rolled_forward_on_request()
     {
+        // A plan that started on Friday has three planned sessions before today (Monday).
         var client = await factory.CreateUserClientAsync();
-        var plan = await CreatePlanAsync(client);
-        factory.Clock.SetUtcNow(StartTime.AddDays(3));
+        var certification = await CreateSampleCertificationAsync(client);
+        var plan = await PostAsync<PlanView>(client, "/api/plans", PlanFor(certification) with { StartDate = Monday.AddDays(-3) });
 
-        try
-        {
-            (await GetDashboardAsync(client)).Plans.Single().OverdueSessions.ShouldBe(3);
+        (await GetDashboardAsync(client)).Plans.Single().OverdueSessions.ShouldBe(3);
 
-            var updated = await PostAsync<PlanView>(client, $"/api/plans/{plan.Id}/reschedule-overdue");
+        var updated = await PostAsync<PlanView>(client, $"/api/plans/{plan.Id}/reschedule-overdue");
 
-            updated.Sessions.Count(s => s.Status == SessionStatus.Missed).ShouldBe(3);
-            (await GetDashboardAsync(client)).Plans.Single().OverdueSessions.ShouldBe(0);
-        }
-        finally
-        {
-            factory.Clock.SetUtcNow(StartTime);
-        }
+        updated.Sessions.Count(s => s.Status == SessionStatus.Missed).ShouldBe(3);
+        (await GetDashboardAsync(client)).Plans.Single().OverdueSessions.ShouldBe(0);
     }
 
     [Fact]

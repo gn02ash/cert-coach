@@ -40,7 +40,7 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("pgvector/pgvector:pg17").Build();
 
-    /// <summary>Shared by all tests; tests that move it live in one class, so they run sequentially.</summary>
+    /// <summary>Fixed for the whole run; tests needing past dates use past start dates instead of moving time.</summary>
     public FakeTimeProvider Clock { get; } = new(StartTime);
 
     /// <summary>A client signed in as a brand-new user, so tests never see each other's data.</summary>
