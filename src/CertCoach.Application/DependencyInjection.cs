@@ -4,6 +4,7 @@ using CertCoach.Application.Dashboard;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Application.Plans;
+using CertCoach.Application.Search;
 using CertCoach.Application.Users;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -22,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<UserAccountService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<DocumentIngestionService>();
+        services.AddScoped<SearchService>();
         return services;
     }
 }

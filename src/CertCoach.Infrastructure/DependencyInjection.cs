@@ -1,9 +1,11 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
+using CertCoach.Application.Search;
 using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
+using CertCoach.Infrastructure.Search;
 using CertCoach.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +36,7 @@ public static class DependencyInjection
 
         // Relative paths resolve against the working directory: the project folder under `dotnet run`, /app in Docker.
         services.AddSingleton<IFileStore>(new LocalFileStore(Path.GetFullPath(configuration["Storage:Path"] ?? "uploads")));
+        services.AddScoped<IChunkRetriever, PostgresChunkRetriever>();
         services.AddSingleton<IngestionSignal>();
         services.AddSingleton<IIngestionSignal>(sp => sp.GetRequiredService<IngestionSignal>());
         if (configuration.GetValue("Ingestion:Enabled", defaultValue: true))

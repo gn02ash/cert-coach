@@ -11,6 +11,7 @@ import {
   type PlanPreview,
   type PlanRequest,
   type PlanView,
+  type SearchResponse,
   type SaveCertificationRequest,
   type UpdateDocumentRequest,
   type UserProfile,
@@ -26,6 +27,7 @@ export const keys = {
   plan: (id: string) => ["plans", id] as const,
   documents: ["documents"] as const,
   aiStatus: ["ai-status"] as const,
+  search: (query: string, certificationId?: string) => ["search", query, certificationId ?? ""] as const,
 };
 
 export const useMe = () =>
@@ -158,3 +160,14 @@ export const useRetryDocument = () =>
   useDocumentMutation((id: string) => api<DocumentSummary>(`/api/documents/${id}/retry`, "POST"));
 
 export const useDeleteDocument = () => useDocumentMutation((id: string) => api<void>(`/api/documents/${id}`, "DELETE"));
+
+export const useSearch = (query: string, certificationId?: string) =>
+  useQuery({
+    queryKey: keys.search(query, certificationId),
+    queryFn: () => {
+      const params = new URLSearchParams({ q: query });
+      if (certificationId) params.set("certificationId", certificationId);
+      return api<SearchResponse>(`/api/search?${params}`);
+    },
+    enabled: query.trim().length > 0,
+  });

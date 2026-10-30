@@ -24,6 +24,8 @@ export type DocumentSummary = Schemas["DocumentSummary"];
 export type DocumentStatus = Schemas["DocumentStatus"];
 export type UpdateDocumentRequest = Schemas["UpdateDocumentRequest"];
 export type AiCapabilities = Schemas["AiCapabilities"];
+export type SearchResponse = Schemas["SearchResponse"];
+export type SearchHit = Schemas["SearchHit"];
 
 /** An HTTP error, carrying the problem-details message from the API when there is one. */
 export class ApiError extends Error {

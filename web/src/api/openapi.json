@@ -193,6 +193,60 @@
         }
       }
     },
+    "/api/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Find the passages in your documents that best match a question or topic.",
+        "operationId": "Search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "certificationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SearchMode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/certifications": {
       "get": {
         "tags": [
@@ -1673,6 +1727,107 @@
           }
         }
       },
+      "SearchHit": {
+        "required": [
+          "chunkId",
+          "documentId",
+          "documentTitle",
+          "headingPath",
+          "pageStart",
+          "pageEnd",
+          "text",
+          "score",
+          "similarity",
+          "vectorRank",
+          "textRank"
+        ],
+        "type": "object",
+        "properties": {
+          "chunkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTitle": {
+            "type": "string"
+          },
+          "headingPath": {
+            "type": "string"
+          },
+          "pageStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageEnd": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "similarity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "vectorRank": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "textRank": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SearchMode": {
+        "enum": [
+          "Hybrid",
+          "Vector",
+          "Text"
+        ]
+      },
+      "SearchResponse": {
+        "required": [
+          "query",
+          "mode",
+          "semantic",
+          "hits"
+        ],
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SearchMode"
+          },
+          "semantic": {
+            "type": "boolean"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            }
+          }
+        }
+      },
       "SessionKind": {
         "enum": [
           "Learn",
@@ -1900,6 +2055,9 @@
     },
     {
       "name": "AI"
+    },
+    {
+      "name": "Search"
     },
     {
       "name": "Plans"
