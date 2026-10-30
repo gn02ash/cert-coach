@@ -72,7 +72,10 @@ export function useSetTimeZone() {
 }
 
 export const useParseOutline = () =>
-  useMutation({ mutationFn: (text: string) => api<OutlineDraft>("/api/outlines/parse", "POST", { text }) });
+  useMutation({
+    mutationFn: ({ text, ai }: { text: string; ai?: boolean }) =>
+      api<OutlineDraft>(ai ? "/api/outlines/parse-ai" : "/api/outlines/parse", "POST", { text }),
+  });
 
 export function useSaveCertification(id: string | undefined) {
   const client = useQueryClient();

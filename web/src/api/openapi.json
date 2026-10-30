@@ -152,6 +152,37 @@
         }
       }
     },
+    "/api/outlines/parse-ai": {
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "summary": "Parse an outline in any layout with the chat model. Needs a chat provider.",
+        "operationId": "ParseOutlineWithAi",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseOutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboard": {
       "get": {
         "tags": [

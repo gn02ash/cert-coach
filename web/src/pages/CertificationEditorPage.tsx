@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import type { CertificationDetail, CertificationStatus, DomainDraft, SaveCertificationRequest } from "../api/client";
-import { useCertification, useParseOutline, useSaveCertification } from "../api/hooks";
+import { useAiStatus, useCertification, useParseOutline, useSaveCertification } from "../api/hooks";
 import { OutlineEditor } from "../components/OutlineEditor";
 import { Alert, Warnings } from "../components/ui";
 import sampleOutline from "../../../samples/DEMO-101-outline.md?raw";
@@ -42,6 +42,7 @@ export function CertificationEditorPage() {
   const existing = useCertification(id);
   const save = useSaveCertification(id);
   const parse = useParseOutline();
+  const ai = useAiStatus();
   const navigate = useNavigate();
 
   const [form, setForm] = useState<SaveCertificationRequest>(emptyForm);
@@ -55,8 +56,8 @@ export function CertificationEditorPage() {
   const set = <K extends keyof SaveCertificationRequest>(key: K, value: SaveCertificationRequest[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const runParse = (text: string) =>
-    parse.mutate(text, {
+  const runParse = (text: string, withAi = false) =>
+    parse.mutate({ text, ai: withAi }, {
       onSuccess: (draft) => {
         set("outline", draft.domains);
         if (draft.domains.length > 0) setShowPaste(false);
@@ -152,6 +153,17 @@ export function CertificationEditorPage() {
               <button type="button" className="button primary" disabled={!pasted.trim() || parse.isPending} onClick={() => runParse(pasted)}>
                 Parse outline
               </button>
+              {ai.data?.chatAvailable && (
+                <button
+                  type="button"
+                  className="button ghost"
+                  disabled={!pasted.trim() || parse.isPending}
+                  onClick={() => runParse(pasted, true)}
+                  title="For outlines in other layouts, such as a table copied from a web page or PDF"
+                >
+                  {parse.isPending && parse.variables?.ai ? "Parsing…" : "Parse with AI"}
+                </button>
+              )}
               <button type="button" className="button ghost" onClick={useSample}>
                 Use the sample outline
               </button>
