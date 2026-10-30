@@ -1,5 +1,7 @@
 using CertCoach.Domain.Certifications;
+using CertCoach.Application.Abstractions;
 using CertCoach.Domain.Planning;
+using CertCoach.Domain.Users;
 using CertCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -103,8 +105,24 @@ public class PersistenceTests(PostgresFixture postgres)
         reloaded.Sessions.Count(s => s.Status == SessionStatus.Missed).ShouldBe(1);
     }
 
+    [Fact]
+    public async Task The_owner_filter_hides_other_users_rows()
+    {
+        var certification = await SaveCertificationAsync();
+        var (plan, _) = StudyPlan.Create(_owner, certification, new PlanSettings(Monday, Monday.AddDays(28), 5m, StudyDays.Everyday), Now);
+        await SavePlanAsync(plan);
+
+        await using var asOwner = postgres.CreateContext(new FixedUser(_owner));
+        await using var asStranger = postgres.CreateContext(new FixedUser(Guid.NewGuid()));
+
+        (await asOwner.Certifications.AnyAsync(c => c.Id == certification.Id, Ct)).ShouldBeTrue();
+        (await asStranger.Certifications.AnyAsync(c => c.Id == certification.Id, Ct)).ShouldBeFalse();
+        (await asStranger.StudyPlans.AnyAsync(p => p.Id == plan.Id, Ct)).ShouldBeFalse();
+    }
+
     private async Task<Certification> SaveCertificationAsync()
     {
+        await EnsureOwnerAsync();
         var certification = Certification.Create(_owner, "DEMO-101", "Demo Cert", "Contoso", Now);
         foreach (var (name, min, max) in new[] { ("Plan solutions", 45, 55), ("Build solutions", 25, 35), ("Monitor solutions", 15, 25) })
         {
@@ -121,6 +139,16 @@ public class PersistenceTests(PostgresFixture postgres)
         return certification;
     }
 
+    private async Task EnsureOwnerAsync()
+    {
+        await using var db = postgres.CreateContext();
+        if (!await db.Users.AnyAsync(u => u.Id == _owner, Ct))
+        {
+            db.Users.Add(User.Create("test", _owner.ToString(), "Test learner", null, Now, _owner));
+            await db.SaveChangesAsync(Ct);
+        }
+    }
+
     private async Task SavePlanAsync(StudyPlan plan)
     {
         await using var db = postgres.CreateContext();
@@ -135,4 +163,9 @@ public class PersistenceTests(PostgresFixture postgres)
 
     private static string Describe(StudySession s) =>
         $"{s.Id}|{s.Sequence}|{s.ScheduledDate}|{s.Kind}|{s.Status}|{s.FocusDomainId}|{string.Join(',', s.ObjectiveIds)}";
+
+    private sealed record FixedUser(Guid UserId) : ICurrentUser
+    {
+        public TimeZoneInfo TimeZone => TimeZoneInfo.Utc;
+    }
 }
