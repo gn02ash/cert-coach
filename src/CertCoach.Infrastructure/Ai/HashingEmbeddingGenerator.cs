@@ -11,9 +11,25 @@ namespace CertCoach.Infrastructure.Ai;
 /// </summary>
 internal sealed class HashingEmbeddingGenerator : IEmbeddingGenerator<string, Embedding<float>>
 {
-    public const string ModelId = "offline-hashing-v1";
+    /// <summary>Stored with every chunk; changing it makes the worker re-embed existing documents.</summary>
+    public const string ModelId = "offline-hashing-v2";
 
     private const float PairWeight = 0.5f;
+
+    /// <summary>
+    /// Words that appear in almost every question and passage. Counting them made unrelated questions look
+    /// similar to everything, so the "not in your materials" gate rarely fired (v1, measured by the eval tool).
+    /// </summary>
+    private static readonly HashSet<string> StopWords =
+    [
+        "a", "about", "after", "all", "also", "an", "and", "any", "are", "as", "at", "be", "because", "been", "before",
+        "being", "between", "both", "but", "by", "can", "could", "did", "do", "does", "doing", "each", "for", "from",
+        "had", "has", "have", "having", "how", "if", "in", "into", "is", "it", "its", "just", "may", "might", "more",
+        "most", "much", "must", "my", "no", "not", "of", "on", "once", "only", "or", "other", "our", "out", "over",
+        "same", "should", "so", "some", "such", "than", "that", "the", "their", "them", "then", "there", "these",
+        "they", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", "we", "were", "what",
+        "when", "where", "which", "while", "who", "whom", "why", "will", "with", "would", "you", "your",
+    ];
 
     private readonly EmbeddingGeneratorMetadata _metadata =
         new("offline", defaultModelId: ModelId, defaultModelDimensions: AiCapabilities.EmbeddingDimensions);
@@ -99,7 +115,7 @@ internal sealed class HashingEmbeddingGenerator : IEmbeddingGenerator<string, Em
 
         void Flush()
         {
-            if (current.Length > 1)
+            if (current.Length > 1 && !StopWords.Contains(current.ToString()))
             {
                 words.Add(Stem(current.ToString()));
             }

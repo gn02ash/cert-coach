@@ -1,0 +1,49 @@
+{"id":"plan-01","question":"Should I use the biggest model for a simple tagging step?","document":"planning-ai-solutions","evidence":"a small fast model usually meets the quality bar"}
+{"id":"plan-02","question":"Which three numbers should I write down before comparing models?","document":"planning-ai-solutions","evidence":"the quality bar (measured on your own examples), the latency budget"}
+{"id":"plan-03","question":"When does running an open-weights model on my own GPUs make sense?","document":"planning-ai-solutions","evidence":"Self-hosting tends to pay off only with steady, high volume"}
+{"id":"plan-04","question":"Roughly how many tokens is a page of 750 words?","document":"planning-ai-solutions","evidence":"a 750-word page is about 1,000 tokens"}
+{"id":"plan-05","question":"Are input and output tokens billed at the same price?","document":"planning-ai-solutions","evidence":"output is typically several times more expensive"}
+{"id":"plan-06","question":"How much safety margin should I add to a monthly cost estimate?","document":"planning-ai-solutions","evidence":"safety margin of 20 to 30 percent"}
+{"id":"plan-07","question":"Where should I deploy the model if customer data must stay in one country?","document":"planning-ai-solutions","evidence":"never leaves a given country or economic area"}
+{"id":"plan-08","question":"What does the service return when I exceed my tokens per minute?","document":"planning-ai-solutions","evidence":"HTTP 429 Too Many Requests"}
+{"id":"plan-09","question":"How should a client retry throttled requests?","document":"planning-ai-solutions","evidence":"exponential backoff and jitter"}
+{"id":"plan-10","question":"What is the difference between provisioned throughput and pay-as-you-go?","document":"planning-ai-solutions","evidence":"Provisioned throughput reserves a fixed amount of model capacity"}
+{"id":"prompt-01","question":"What belongs in a system prompt?","document":"prompt-engineering","evidence":"State who the assistant is, who it is talking to"}
+{"id":"prompt-02","question":"Why explain the reason behind an instruction instead of using capital letters?","document":"prompt-engineering","evidence":"the model can apply the reason to cases the rule did not anticipate"}
+{"id":"prompt-03","question":"How many examples should few-shot prompting use?","document":"prompt-engineering","evidence":"Three to five examples are usually enough"}
+{"id":"prompt-04","question":"Do I still need to validate JSON when the output follows a schema?","document":"prompt-engineering","evidence":"Still validate the result in your code"}
+{"id":"prompt-05","question":"Which temperature suits extraction tasks?","document":"prompt-engineering","evidence":"Lower values make the output more focused and repeatable"}
+{"id":"prompt-06","question":"How can an uploaded document hijack the assistant, and how do I defend against it?","document":"prompt-engineering","evidence":"This is called prompt injection"}
+{"id":"prompt-07","question":"In what order should I arrange a prompt so the provider can reuse it?","document":"prompt-engineering","evidence":"order the prompt from most stable to least stable"}
+{"id":"prompt-08","question":"Why did putting the current time at the top of my prompt make requests more expensive?","document":"prompt-engineering","evidence":"silently disables caching"}
+{"id":"tools-01","question":"Does the model execute functions on its own?","document":"tools-and-agents","evidence":"The model never runs the tool itself"}
+{"id":"tools-02","question":"Why does the model keep choosing the wrong function?","document":"tools-and-agents","evidence":"Vague descriptions are the most common reason a model picks the wrong tool"}
+{"id":"tools-03","question":"How do I stop an agent from looping forever?","document":"tools-and-agents","evidence":"Put a limit on the number of iterations"}
+{"id":"tools-04","question":"What should I do when the model requests several independent calls at once?","document":"tools-and-agents","evidence":"Run them in parallel and return all the results together"}
+{"id":"tools-05","question":"What should go back to the model when a function throws an exception?","document":"tools-and-agents","evidence":"return the error to the model as the tool result"}
+{"id":"tools-06","question":"What is MCP and why build a server for it?","document":"tools-and-agents","evidence":"The Model Context Protocol, or MCP, is an open standard"}
+{"id":"tools-07","question":"Which transports can an MCP server use?","document":"tools-and-agents","evidence":"locally over standard input and output, or remotely over HTTP"}
+{"id":"tools-08","question":"Which actions need a person to confirm them first?","document":"tools-and-agents","evidence":"should require a person to approve the call before it runs"}
+{"id":"rag-01","question":"Why can't I index text from a scanned PDF directly?","document":"rag-fundamentals","evidence":"need optical character recognition"}
+{"id":"rag-02","question":"What noise should be removed from PDF text before chunking?","document":"rag-fundamentals","evidence":"Running headers, footers and page numbers repeat on every page"}
+{"id":"rag-03","question":"How big should each chunk be?","document":"rag-fundamentals","evidence":"A chunk of 300 to 500 tokens"}
+{"id":"rag-04","question":"How much should neighbouring chunks overlap?","document":"rag-fundamentals","evidence":"overlap of about 10 to 20 percent"}
+{"id":"rag-05","question":"What happens to my stored vectors if I switch to another embedding model?","document":"rag-fundamentals","evidence":"changing the embedding model means re-embedding every chunk"}
+{"id":"rag-06","question":"Why use an approximate index instead of comparing the query with every vector?","document":"rag-fundamentals","evidence":"approximate nearest neighbour indexes such as HNSW"}
+{"id":"rag-07","question":"Why would semantic search miss an error code that keyword search finds?","document":"rag-fundamentals","evidence":"it can miss exact terms such as product names, error codes or acronyms"}
+{"id":"rag-08","question":"How does reciprocal rank fusion combine two result lists?","document":"rag-fundamentals","evidence":"Reciprocal rank fusion is a simple and robust way to merge them"}
+{"id":"rag-09","question":"How do I make sure the model's source numbers are real?","document":"rag-fundamentals","evidence":"drop any number that does not match a passage"}
+{"id":"rag-10","question":"Which metrics measure retrieval quality?","document":"rag-fundamentals","evidence":"Measure recall at k"}
+{"id":"sec-01","question":"What should every model call trace record?","document":"monitoring-security","evidence":"Trace every model request with its latency"}
+{"id":"sec-02","question":"Is it safe to store the prompts users send?","document":"monitoring-security","evidence":"redact personal information before storing them"}
+{"id":"sec-03","question":"How strict should harm filters be for a children's app?","document":"monitoring-security","evidence":"A children's tutoring app needs much stricter thresholds"}
+{"id":"sec-04","question":"How can my app call the AI service without storing a key?","document":"monitoring-security","evidence":"Use a managed identity"}
+{"id":"sec-05","question":"How do I keep traffic to the AI endpoint off the public internet?","document":"monitoring-security","evidence":"connect through private endpoints"}
+{"id":"sec-06","question":"What is red teaming an AI application?","document":"monitoring-security","evidence":"deliberately try to make it produce harmful output"}
+{"id":"sec-07","question":"At what spend levels should budget alerts fire?","document":"monitoring-security","evidence":"alerts at 50, 80 and 100 percent"}
+{"id":"none-01","question":"What is the passing score for the DEMO-101 exam?","unanswerable":true}
+{"id":"none-02","question":"How do I configure horizontal pod autoscaling in Kubernetes?","unanswerable":true}
+{"id":"none-03","question":"How do I fine-tune a model with LoRA adapters?","unanswerable":true}
+{"id":"none-04","question":"What does the CAP theorem say about distributed databases?","unanswerable":true}
+{"id":"none-05","question":"Which graphics card is best for playing games at 4K?","unanswerable":true}
+{"id":"none-06","question":"How long do I have to complete the exam and how many questions are there?","unanswerable":true}

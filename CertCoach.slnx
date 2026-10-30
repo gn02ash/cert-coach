@@ -5,6 +5,9 @@
     <Project Path="src/CertCoach.Domain/CertCoach.Domain.csproj" />
     <Project Path="src/CertCoach.Infrastructure/CertCoach.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/CertCoach.Eval/CertCoach.Eval.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/CertCoach.Api.IntegrationTests/CertCoach.Api.IntegrationTests.csproj" />
     <Project Path="tests/CertCoach.Application.Tests/CertCoach.Application.Tests.csproj" />

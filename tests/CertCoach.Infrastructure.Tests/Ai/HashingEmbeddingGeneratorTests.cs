@@ -40,6 +40,13 @@ public class HashingEmbeddingGeneratorTests
     }
 
     [Fact]
+    public void Stop_words_carry_no_weight()
+    {
+        HashingEmbeddingGenerator.Embed("What is the").ShouldAllBe(v => v == 0f);
+        HashingEmbeddingGenerator.Embed("What is the quota?").ShouldBe(HashingEmbeddingGenerator.Embed("quota"));
+    }
+
+    [Fact]
     public void Empty_text_gives_a_zero_vector()
     {
         HashingEmbeddingGenerator.Embed(" - ").ShouldAllBe(v => v == 0f);

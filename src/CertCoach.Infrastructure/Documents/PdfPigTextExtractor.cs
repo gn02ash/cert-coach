@@ -55,7 +55,7 @@ internal sealed partial class PdfPigTextExtractor : IPdfTextExtractor
             var blocks = new List<DocumentBlock>();
             foreach (var block in lines)
             {
-                AddBlock(block.Where(l => !(l.InMargin && repeated.Contains(Normalize(l.Text)))).ToList(), bodySize, levels, blocks);
+                AddBlock(block.Where(l => !IsRunningText(l, repeated)).ToList(), bodySize, levels, blocks);
             }
 
             var title = document.Information.Title is { Length: > 0 } t && !string.IsNullOrWhiteSpace(t)
@@ -135,16 +135,20 @@ internal sealed partial class PdfPigTextExtractor : IPdfTextExtractor
     private static bool InMargin(double bottom, double top, double pageHeight) =>
         top <= pageHeight * MarginZone || bottom >= pageHeight * (1 - MarginZone);
 
-    /// <summary>Short margin lines that appear on at least half the pages (and at least three), with page numbers ignored.</summary>
+    /// <summary>Short margin lines that appear on at least half the pages (and at least two), with page numbers ignored.</summary>
     private static HashSet<string> RepeatedLines(IEnumerable<Line> lines, int pageCount)
     {
-        var threshold = Math.Max(3, (int)Math.Ceiling(pageCount / 2.0));
+        var threshold = Math.Max(2, (int)Math.Ceiling(pageCount / 2.0));
         return lines.Where(l => l.InMargin && l.Text.Length <= MaxRepeatedLineLength)
             .GroupBy(l => Normalize(l.Text))
             .Where(g => g.Select(l => l.Page).Distinct().Count() >= threshold)
             .Select(g => g.Key)
             .ToHashSet();
     }
+
+    /// <summary>A repeated margin line, or a bare page number such as "12" or "Page 3 of 10", which even a one-page PDF can't repeat.</summary>
+    private static bool IsRunningText(Line line, HashSet<string> repeated) =>
+        line.InMargin && (repeated.Contains(Normalize(line.Text)) || PageNumber().IsMatch(line.Text));
 
     private static string Normalize(string text) => Digits().Replace(text, "#");
 
@@ -181,4 +185,7 @@ internal sealed partial class PdfPigTextExtractor : IPdfTextExtractor
 
     [GeneratedRegex(@"\d+")]
     private static partial Regex Digits();
+
+    [GeneratedRegex(@"^(page\s*)?\d+(\s*(of|/)\s*\d+)?$", RegexOptions.IgnoreCase)]
+    private static partial Regex PageNumber();
 }

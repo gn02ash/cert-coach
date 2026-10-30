@@ -62,6 +62,16 @@ public class PdfPigTextExtractorTests
     }
 
     [Fact]
+    public void Drops_a_footer_repeated_on_both_pages_of_a_short_pdf()
+    {
+        var document = Extract(new TestPdf { Footer = "Notes, page" }
+            .Page(("One", HeadingSize), (Intro, BodySize))
+            .Page(("Two", HeadingSize), (Hybrid, BodySize)));
+
+        document.Blocks.ShouldNotContain(b => b.Text.StartsWith("Notes", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void A_pdf_without_text_reports_no_text()
     {
         var document = Extract(new TestPdf().Page());

@@ -94,7 +94,7 @@ public class AskTests(CertCoachApiFactory factory)
         var withChat = factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<IChatClient>(chat);
-            services.AddSingleton(new AiCapabilities("Fake", "fake-model", "Offline", "offline-hashing-v1", ChatAvailable: true, SemanticSearch: false));
+            services.AddSingleton(new AiCapabilities("Fake", "fake-model", "Offline", "offline-hashing-v2", ChatAvailable: true, SemanticSearch: false));
         }));
 
         var user = await factory.CreateUserClientAsync();
