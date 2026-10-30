@@ -23,6 +23,9 @@ public static class StudyDaysExtensions
 
     public static bool Includes(this StudyDays days, DayOfWeek day) => (days & ToFlag(day)) != 0;
 
+    public static StudyDays FromDaysOfWeek(IEnumerable<DayOfWeek> days) =>
+        days.Aggregate(StudyDays.None, (all, day) => all | ToFlag(day));
+
     private static readonly DayOfWeek[] MondayFirst =
     [
         DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,

@@ -73,7 +73,14 @@ public sealed class StudyPlan
             .Select(d => new OutlineDomain(d.Id, d.Weight, d.Objectives.Select(o => o.Id).ToList()))
             .ToList();
 
-    public void CompleteSession(Guid sessionId, DateTimeOffset now) => FindSession(sessionId).Complete(now);
+    /// <summary>Ends the plan, for example after the exam or before replacing the outline.</summary>
+    public void Archive() => Status = PlanStatus.Archived;
+
+    public void CompleteSession(Guid sessionId, DateTimeOffset now)
+    {
+        EnsureActive();
+        FindSession(sessionId).Complete(now);
+    }
 
     /// <summary>Marks a session missed and moves its content onto the remaining days.</summary>
     public IReadOnlyList<PlanWarning> MarkSessionMissed(Guid sessionId, DateOnly today)
