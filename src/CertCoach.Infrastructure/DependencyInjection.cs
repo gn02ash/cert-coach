@@ -23,9 +23,20 @@ public static class DependencyInjection
         return services;
     }
 
+    /// <summary>Applies pending migrations. Used at startup in development and Docker.</summary>
+    public static async Task MigrateDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<CertCoachDbContext>();
+        await db.Database.MigrateAsync(cancellationToken);
+    }
+
     /// <summary>Shared by the app, design-time tooling and tests so all three build the same model.</summary>
     public static DbContextOptionsBuilder UseCertCoachDatabase(this DbContextOptionsBuilder options, string connectionString) =>
         options
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__ef_migrations_history"))
+            .UseNpgsql(connectionString, npgsql => npgsql
+                .MigrationsHistoryTable("__ef_migrations_history")
+                // Outlines are three collections deep; split queries avoid a cartesian explosion.
+                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .UseSnakeCaseNamingConvention();
 }
