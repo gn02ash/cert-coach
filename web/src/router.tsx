@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { AuthGate } from "./components/AuthGate";
 import { Layout } from "./components/Layout";
+import { AskPage } from "./pages/AskPage";
 import { CertificationEditorPage } from "./pages/CertificationEditorPage";
 import { CertificationsPage } from "./pages/CertificationsPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "plans/:id", element: <PlanPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "search", element: <SearchPage /> },
+      { path: "ask", element: <AskPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

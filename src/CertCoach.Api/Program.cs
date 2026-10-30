@@ -68,7 +68,8 @@ app.MapGroup("/api")
     .MapPlanEndpoints()
     .MapAiEndpoints()
     .MapDocumentEndpoints()
-    .MapSearchEndpoints();
+    .MapSearchEndpoints()
+    .MapAskEndpoints();
 
 await app.RunAsync();
 

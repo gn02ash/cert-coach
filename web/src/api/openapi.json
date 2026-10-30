@@ -247,6 +247,37 @@
         }
       }
     },
+    "/api/ask": {
+      "post": {
+        "tags": [
+          "Ask"
+        ],
+        "summary": "Answer a question from your documents, streamed as server-sent events: sources, then deltas, then done.",
+        "operationId": "Ask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseItemOfObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/certifications": {
       "get": {
         "tags": [
@@ -896,6 +927,54 @@
           },
           "semanticSearch": {
             "type": "boolean"
+          }
+        }
+      },
+      "AskRequest": {
+        "required": [
+          "question"
+        ],
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "history": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AskTurn"
+            }
+          }
+        }
+      },
+      "AskRole": {
+        "enum": [
+          "User",
+          "Assistant"
+        ]
+      },
+      "AskTurn": {
+        "required": [
+          "role",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/AskRole"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },
@@ -1984,6 +2063,31 @@
           }
         }
       },
+      "SseItemOfObject": {
+        "type": "object",
+        "properties": {
+          "data": { },
+          "eventType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reconnectionInterval": {
+            "pattern": "^-?(\\d+\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "TimeZoneRequest": {
         "required": [
           "timeZone"
@@ -2058,6 +2162,9 @@
     },
     {
       "name": "Search"
+    },
+    {
+      "name": "Ask"
     },
     {
       "name": "Plans"

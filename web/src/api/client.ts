@@ -1,3 +1,4 @@
+import { readSse } from "../lib/sse";
 import type { components } from "./schema";
 
 type Schemas = components["schemas"];
@@ -26,6 +27,25 @@ export type UpdateDocumentRequest = Schemas["UpdateDocumentRequest"];
 export type AiCapabilities = Schemas["AiCapabilities"];
 export type SearchResponse = Schemas["SearchResponse"];
 export type SearchHit = Schemas["SearchHit"];
+export type AskRequest = Schemas["AskRequest"];
+export type AskTurn = Schemas["AskTurn"];
+
+/** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
+export interface AskSource {
+  number: number;
+  chunkId: string;
+  documentId: string;
+  documentTitle: string;
+  headingPath: string;
+  pageStart: number;
+  pageEnd: number;
+  text: string;
+}
+export type AnswerKind = "Ai" | "Quoted" | "NotCovered" | "Declined";
+export type AskEvent =
+  | { type: "sources"; sources: AskSource[] }
+  | { type: "delta"; text: string }
+  | { type: "done"; kind: AnswerKind; cited: number[]; notice: string | null };
 
 /** An HTTP error, carrying the problem-details message from the API when there is one. */
 export class ApiError extends Error {
@@ -76,6 +96,25 @@ export async function upload<T>(path: string, form: FormData): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+/** Streams an answer: calls onEvent for the sources, each piece of text, and the final summary. */
+export async function askStream(request: AskRequest, onEvent: (event: AskEvent) => void, signal?: AbortSignal) {
+  const response = await fetch("/api/ask", {
+    method: "POST",
+    headers: { Accept: "text/event-stream", "Content-Type": "application/json", "X-CSRF": "1" },
+    credentials: "same-origin",
+    body: JSON.stringify(request),
+    signal,
+  });
+
+  if (!response.ok || !response.body) {
+    throw new ApiError(response.status, await problemMessage(response));
+  }
+
+  for await (const message of readSse(response.body)) {
+    onEvent({ type: message.event, ...JSON.parse(message.data) } as AskEvent);
+  }
 }
 
 async function problemMessage(response: Response): Promise<string> {
