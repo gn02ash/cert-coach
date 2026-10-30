@@ -134,6 +134,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find the passages in your documents that best match a question or topic. */
+        get: operations["Search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/certifications": {
         parameters: {
             query?: never;
@@ -588,6 +605,35 @@ export interface components {
             replacedByExamCode: null | string;
             outline: components["schemas"]["DomainDraft"][];
         };
+        SearchHit: {
+            /** Format: uuid */
+            chunkId: string;
+            /** Format: uuid */
+            documentId: string;
+            documentTitle: string;
+            headingPath: string;
+            /** Format: int32 */
+            pageStart: number;
+            /** Format: int32 */
+            pageEnd: number;
+            text: string;
+            /** Format: double */
+            score: number;
+            /** Format: double */
+            similarity: null | number;
+            /** Format: int32 */
+            vectorRank: null | number;
+            /** Format: int32 */
+            textRank: null | number;
+        };
+        /** @enum {unknown} */
+        SearchMode: "Hybrid" | "Vector" | "Text";
+        SearchResponse: {
+            query: string;
+            mode: components["schemas"]["SearchMode"];
+            semantic: boolean;
+            hits: components["schemas"]["SearchHit"][];
+        };
         /** @enum {unknown} */
         SessionKind: "Learn" | "Review" | "MockExam";
         SessionObjectiveView: {
@@ -818,6 +864,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiCapabilities"];
+                };
+            };
+        };
+    };
+    Search: {
+        parameters: {
+            query: {
+                q: string;
+                certificationId?: string;
+                limit?: number;
+                mode?: components["schemas"]["SearchMode"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
                 };
             };
         };
