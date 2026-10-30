@@ -214,6 +214,11 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("CustomTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("custom_title");
+
                     b.Property<string>("EmbeddingModel")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -224,15 +229,16 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("error");
 
+                    b.Property<string>("ExtractedTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("extracted_title");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("file_name");
-
-                    b.Property<bool>("HasCustomTitle")
-                        .HasColumnType("boolean")
-                        .HasColumnName("has_custom_title");
 
                     b.Property<DateTimeOffset?>("NextAttemptAt")
                         .HasColumnType("timestamp with time zone")
@@ -263,12 +269,6 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
                         .HasColumnName("status");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("title");
 
                     b.HasKey("Id")
                         .HasName("pk_documents");

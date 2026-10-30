@@ -28,6 +28,9 @@ public static class DependencyInjection
         services.AddAi(configuration);
         services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddSingleton<ITokenCounter, TiktokenTokenCounter>();
+        services.AddSingleton(new ChunkingOptions(
+            configuration.GetValue("Ingestion:Chunking:TargetTokens", ChunkingOptions.Default.TargetTokens),
+            configuration.GetValue("Ingestion:Chunking:OverlapTokens", ChunkingOptions.Default.OverlapTokens)));
 
         // Relative paths resolve against the working directory: the project folder under `dotnet run`, /app in Docker.
         services.AddSingleton<IFileStore>(new LocalFileStore(Path.GetFullPath(configuration["Storage:Path"] ?? "uploads")));

@@ -27,17 +27,23 @@ public sealed class Document
 
     private Document()
     {
-        Title = null!;
         FileName = null!;
         ContentHash = null!;
     }
 
     public Guid Id { get; private set; }
     public Guid OwnerId { get; private set; }
-    public string Title { get; private set; }
+    /// <summary>The user's title if they renamed it, else the PDF's own title, else one made from the file name.</summary>
+    public string Title => DisplayTitle(CustomTitle, ExtractedTitle, FileName);
 
-    /// <summary>False until the user renames it, so the PDF's own title can replace the file name.</summary>
-    public bool HasCustomTitle { get; private set; }
+    /// <summary>Set only by the user, so it always wins.</summary>
+    public string? CustomTitle { get; private set; }
+
+    /// <summary>
+    /// From the PDF's metadata or first heading. Set only by the ingestion worker, in its own column,
+    /// so a rename while the document is processing is never overwritten.
+    /// </summary>
+    public string? ExtractedTitle { get; private set; }
 
     public string FileName { get; private set; }
     public long SizeBytes { get; private set; }
@@ -66,13 +72,14 @@ public sealed class Document
     public static Document Create(
         Guid ownerId, string fileName, long sizeBytes, string contentHash, Guid? certificationId, DateTimeOffset now)
     {
-        fileName = Path.GetFileName(Certification.Required(fileName, nameof(fileName)));
+        // Browsers may send a full client path; either separator can appear whatever the server's OS.
+        fileName = Certification.Required(fileName, nameof(fileName));
+        fileName = Certification.Required(fileName[(fileName.LastIndexOfAny(['/', '\\']) + 1)..], nameof(fileName));
         return new Document
         {
             Id = Guid.CreateVersion7(),
             OwnerId = ownerId,
             FileName = fileName,
-            Title = TitleFromFileName(fileName),
             SizeBytes = sizeBytes,
             ContentHash = Certification.Required(contentHash, nameof(contentHash)).ToLowerInvariant(),
             CertificationId = certificationId,
@@ -91,8 +98,7 @@ public sealed class Document
 
         if (title != Title)
         {
-            Title = title;
-            HasCustomTitle = true;
+            CustomTitle = title;
         }
 
         CertificationId = certificationId;
@@ -124,10 +130,7 @@ public sealed class Document
         ProcessingStartedAt = null;
 
         var title = extractedTitle?.Trim();
-        if (!HasCustomTitle && !string.IsNullOrEmpty(title))
-        {
-            Title = title.Length > MaxTitleLength ? title[..MaxTitleLength] : title;
-        }
+        ExtractedTitle = string.IsNullOrEmpty(title) ? null : title.Length > MaxTitleLength ? title[..MaxTitleLength] : title;
     }
 
     /// <param name="retryable">
@@ -173,6 +176,10 @@ public sealed class Document
             throw new DomainException("The document is not being processed.");
         }
     }
+
+    /// <summary>Also usable in queries that project the three columns instead of loading the entity.</summary>
+    public static string DisplayTitle(string? customTitle, string? extractedTitle, string fileName) =>
+        customTitle ?? extractedTitle ?? TitleFromFileName(fileName);
 
     private static string TitleFromFileName(string fileName)
     {

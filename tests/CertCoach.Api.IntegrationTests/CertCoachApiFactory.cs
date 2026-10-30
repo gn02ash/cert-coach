@@ -85,6 +85,10 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("Auth:DevLogin:Enabled", "true");
         builder.UseSetting("Storage:Path", _uploads);
 
+        // Test PDFs have a sentence or two per section; small chunks keep sections apart as real ones would be.
+        builder.UseSetting("Ingestion:Chunking:TargetTokens", "28");
+        builder.UseSetting("Ingestion:Chunking:OverlapTokens", "0");
+
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);

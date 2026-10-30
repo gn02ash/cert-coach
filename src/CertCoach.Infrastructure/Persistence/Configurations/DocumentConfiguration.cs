@@ -15,7 +15,9 @@ internal sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
     {
         builder.HasKey(d => d.Id);
         builder.Property(d => d.Id).ValueGeneratedNever();
-        builder.Property(d => d.Title).HasMaxLength(Document.MaxTitleLength);
+        builder.Ignore(d => d.Title);
+        builder.Property(d => d.CustomTitle).HasMaxLength(Document.MaxTitleLength);
+        builder.Property(d => d.ExtractedTitle).HasMaxLength(Document.MaxTitleLength);
         builder.Property(d => d.FileName).HasMaxLength(255);
         builder.Property(d => d.ContentHash).HasMaxLength(64);
         builder.Property(d => d.Error).HasMaxLength(500);

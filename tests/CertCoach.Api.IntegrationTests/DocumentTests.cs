@@ -19,7 +19,8 @@ public class DocumentTests(CertCoachApiFactory factory)
 
     private static byte[] StudyNotes(string topic = "Hybrid search") => new TestPdf()
         .Page(("Study notes", TitleSize), ("Retrieval", HeadingSize),
-            ("Retrieval-augmented generation grounds answers in your own documents.", BodySize))
+            ("Retrieval-augmented generation grounds answers in your own documents. " +
+             "The application retrieves related passages first.", BodySize))
         .Page((topic, HeadingSize),
             ($"{topic} combines a vector search with a keyword search and merges the rankings.", BodySize))
         .Build();
@@ -55,9 +56,10 @@ public class DocumentTests(CertCoachApiFactory factory)
     public async Task The_same_pdf_cannot_be_uploaded_twice()
     {
         var client = await factory.CreateUserClientAsync();
-        await UploadAsync(client, StudyNotes(), "a.pdf");
+        var pdf = StudyNotes();
+        await UploadAsync(client, pdf, "a.pdf");
 
-        var response = await PostFileAsync(client, StudyNotes(), "b.pdf");
+        var response = await PostFileAsync(client, pdf, "b.pdf");
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }

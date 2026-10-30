@@ -19,6 +19,7 @@ public sealed partial class DocumentIngestionService(
     ITokenCounter tokens,
     IEmbeddingGenerator<string, Embedding<float>> embeddings,
     AiCapabilities capabilities,
+    ChunkingOptions chunking,
     TimeProvider time,
     ILogger<DocumentIngestionService> logger)
 {
@@ -52,7 +53,13 @@ public sealed partial class DocumentIngestionService(
             LogFailed(e, document.Id, retryable);
 
             db.ChangeTracker.Clear();
-            document = await db.Documents.IgnoreQueryFilters().SingleAsync(d => d.Id == documentId, ct);
+            document = await db.Documents.IgnoreQueryFilters().SingleOrDefaultAsync(d => d.Id == documentId, ct);
+            if (document is not { Status: DocumentStatus.Processing })
+            {
+                // Deleted (or requeued) while it was being processed: nothing left to record.
+                return;
+            }
+
             document.FailProcessing(message, retryable, time.GetUtcNow());
             await db.SaveChangesAsync(ct);
         }
@@ -77,8 +84,8 @@ public sealed partial class DocumentIngestionService(
                 "No text found. This looks like a scanned PDF, which needs OCR; that isn't supported yet.", retryable: false);
         }
 
-        var chunks = Chunker.Split(extracted.Blocks, tokens);
-        var title = document.HasCustomTitle ? document.Title : extracted.Title ?? document.Title;
+        var chunks = Chunker.Split(extracted.Blocks, tokens, chunking);
+        var title = Document.DisplayTitle(document.CustomTitle, extracted.Title, document.FileName);
         var vectors = await EmbedAsync(chunks.Select(c => EmbeddingText(title, c.HeadingPath, c.Text)).ToList(), ct);
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);

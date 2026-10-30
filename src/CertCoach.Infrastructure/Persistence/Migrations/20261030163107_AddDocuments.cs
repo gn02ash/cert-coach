@@ -19,8 +19,8 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     owner_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    has_custom_title = table.Column<bool>(type: "boolean", nullable: false),
+                    custom_title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    extracted_title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     file_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     size_bytes = table.Column<long>(type: "bigint", nullable: false),
                     content_hash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),

@@ -55,6 +55,18 @@ public class DocumentTests
     }
 
     [Fact]
+    public void A_rename_while_processing_is_not_overwritten_by_the_pdfs_title()
+    {
+        var document = Processing();
+        document.Update("Renamed mid-way", null);
+
+        document.CompleteProcessing(1, "Extracted title", 1, "m", Now);
+
+        document.Title.ShouldBe("Renamed mid-way");
+        document.ExtractedTitle.ShouldBe("Extracted title");
+    }
+
+    [Fact]
     public void Transient_failures_retry_with_a_growing_delay_then_give_up()
     {
         var document = Processing();
