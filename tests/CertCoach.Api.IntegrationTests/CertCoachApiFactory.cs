@@ -1,11 +1,18 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CertCoach.Application.Abstractions;
+using CertCoach.Domain.Users;
+using CertCoach.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Testcontainers.PostgreSql;
 
@@ -15,11 +22,13 @@ namespace CertCoach.Api.IntegrationTests;
 
 /// <summary>
 /// The real API against a disposable PostgreSQL + pgvector container, with a fixed clock.
-/// Each test signs in as its own user through the <see cref="UserHeader"/> header.
+/// Requests carrying <see cref="UserHeader"/> are authenticated as that user; all others go
+/// through the app's real cookie authentication.
 /// </summary>
 public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string UserHeader = "X-Test-User";
+    public const string CsrfHeader = "X-CSRF";
 
     /// <summary>Monday 2 November 2026, 08:00 UTC.</summary>
     public static readonly DateTimeOffset StartTime = new(2026, 11, 2, 8, 0, 0, TimeSpan.Zero);
@@ -34,11 +43,20 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
     /// <summary>Fixed for the whole run; tests needing past dates use past start dates instead of moving time.</summary>
     public FakeTimeProvider Clock { get; } = new(StartTime);
 
-    /// <summary>A client acting as a fresh user, so tests never see each other's data.</summary>
-    public HttpClient CreateUserClient(Guid? userId = null)
+    /// <summary>A client signed in as a brand-new user, so tests never see each other's data.</summary>
+    public async Task<HttpClient> CreateUserClientAsync()
     {
+        var userId = Guid.NewGuid();
+        await using (var scope = Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<CertCoachDbContext>();
+            db.Users.Add(User.Create("test", userId.ToString(), "Test learner", null, StartTime, userId));
+            await db.SaveChangesAsync();
+        }
+
         var client = CreateClient();
-        client.DefaultRequestHeaders.Add(UserHeader, (userId ?? Guid.NewGuid()).ToString());
+        client.DefaultRequestHeaders.Add(UserHeader, userId.ToString());
+        client.DefaultRequestHeaders.Add(CsrfHeader, "1");
         return client;
     }
 
@@ -59,20 +77,41 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:CertCoach", _postgres.GetConnectionString());
         builder.UseSetting("Database:MigrateOnStartup", "true");
+        builder.UseSetting("Auth:DevLogin:Enabled", "true");
 
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);
-            services.AddHttpContextAccessor();
-            services.AddScoped<ICurrentUser, HeaderCurrentUser>();
+            services.AddAuthentication()
+                .AddScheme<AuthenticationSchemeOptions, TestUserHandler>(TestUserHandler.SchemeName, _ => { });
+            services.Configure<AuthenticationOptions>(options => options.DefaultScheme = TestUserHandler.SchemeName);
         });
     }
 
-    private sealed class HeaderCurrentUser(IHttpContextAccessor accessor) : ICurrentUser
+    /// <summary>Authenticates from the test header, or defers to the real session cookie.</summary>
+    private sealed class TestUserHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
-        public Guid UserId { get; } =
-            Guid.TryParse(accessor.HttpContext?.Request.Headers[UserHeader], out var id) ? id : Guid.Empty;
+        public const string SchemeName = "Test";
 
-        public TimeZoneInfo TimeZone => TimeZoneInfo.Utc;
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            if (!Request.Headers.TryGetValue(UserHeader, out var userId))
+            {
+                return await Context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+
+            var identity = new ClaimsIdentity(
+                [new Claim("cc_uid", userId.ToString()), new Claim("cc_tz", "UTC"), new Claim(ClaimTypes.Name, "Test learner")],
+                SchemeName);
+            return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName));
+        }
+
+        protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
     }
 }

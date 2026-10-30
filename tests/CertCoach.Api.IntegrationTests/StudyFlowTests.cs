@@ -28,7 +28,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Pasting_an_outline_and_saving_it_creates_a_certification()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
 
         var created = await CreateSampleCertificationAsync(client);
 
@@ -41,7 +41,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Duplicate_exam_codes_are_rejected_with_409()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         await CreateSampleCertificationAsync(client);
 
         var response = await client.PostAsJsonAsync("/api/certifications", await SampleRequestAsync(client), Json, Ct);
@@ -52,7 +52,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Previewing_a_plan_does_not_save_it()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var certification = await CreateSampleCertificationAsync(client);
 
         var preview = await PostAsync<PlanPreview>(client, "/api/plans/preview", PlanFor(certification));
@@ -66,7 +66,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task The_dashboard_shows_todays_session_and_tracks_progress()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var plan = await CreatePlanAsync(client);
 
         var dashboard = await GetDashboardAsync(client);
@@ -86,7 +86,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Missing_a_session_reschedules_its_objectives()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var plan = await CreatePlanAsync(client);
         var first = plan.Sessions[0];
 
@@ -102,7 +102,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     public async Task Overdue_sessions_are_rolled_forward_on_request()
     {
         // A plan that started on Friday has three planned sessions before today (Monday).
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var certification = await CreateSampleCertificationAsync(client);
         var plan = await PostAsync<PlanView>(client, "/api/plans", PlanFor(certification) with { StartDate = Monday.AddDays(-3) });
 
@@ -117,7 +117,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Only_one_active_plan_per_certification()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var plan = await CreatePlanAsync(client);
 
         var response = await client.PostAsJsonAsync("/api/plans", PlanFor(plan.CertificationId), Json, Ct);
@@ -128,7 +128,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task The_outline_is_locked_while_a_plan_is_active()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var plan = await CreatePlanAsync(client);
         var request = await SampleRequestAsync(client);
         var changed = request with { Outline = request.Outline.Take(2).ToList() };
@@ -144,7 +144,7 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Invalid_settings_return_problem_details()
     {
-        var client = factory.CreateUserClient();
+        var client = await factory.CreateUserClientAsync();
         var certification = await CreateSampleCertificationAsync(client);
 
         var response = await client.PostAsJsonAsync(
@@ -158,9 +158,9 @@ public class StudyFlowTests(CertCoachApiFactory factory)
     [Fact]
     public async Task Users_cannot_see_each_others_data()
     {
-        var owner = factory.CreateUserClient();
+        var owner = await factory.CreateUserClientAsync();
         var plan = await CreatePlanAsync(owner);
-        var stranger = factory.CreateUserClient();
+        var stranger = await factory.CreateUserClientAsync();
 
         (await stranger.GetAsync($"/api/certifications/{plan.CertificationId}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
         (await stranger.GetAsync($"/api/plans/{plan.Id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);

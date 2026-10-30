@@ -1,9 +1,11 @@
 using System.Text.Json.Serialization;
+using CertCoach.Api.Auth;
 using CertCoach.Api.Endpoints;
 using CertCoach.Api.Infrastructure;
 using CertCoach.Application;
-using CertCoach.Application.Abstractions;
 using CertCoach.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddScoped<ICurrentUser, DevelopmentCurrentUser>();
+builder.Services.AddCertCoachAuth(builder.Configuration);
+
+// Session cookies are encrypted with Data Protection keys; keep them across container restarts.
+if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+{
+    builder.Services.AddDataProtection()
+        .SetApplicationName("CertCoach")
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+}
+
+// Behind the web container's reverse proxy, so sign-in redirect URIs use the public scheme and host.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 var app = builder.Build();
 
@@ -24,8 +42,11 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await app.Services.MigrateDatabaseAsync();
 }
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -33,8 +54,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapHealthChecks("/health");
+app.MapAuthEndpoints();
 
 app.MapGroup("/api")
+    .RequireAuthorization()
+    .AddEndpointFilter<CsrfHeaderFilter>()
     .MapCertificationEndpoints()
     .MapPlanEndpoints();
 
