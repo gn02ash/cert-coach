@@ -1,3 +1,4 @@
+using CertCoach.Application.Abstractions;
 using CertCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
@@ -14,11 +15,12 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("pgvector/pgvector:pg17").Build();
 
-    public CertCoachDbContext CreateContext()
+    /// <param name="currentUser">When given, the context applies the owner query filters for this user.</param>
+    public CertCoachDbContext CreateContext(ICurrentUser? currentUser = null)
     {
         var options = new DbContextOptionsBuilder<CertCoachDbContext>();
         options.UseCertCoachDatabase(_container.GetConnectionString());
-        return new CertCoachDbContext(options.Options);
+        return new CertCoachDbContext(options.Options, currentUser);
     }
 
     public async ValueTask InitializeAsync()
