@@ -187,17 +187,17 @@ public static class PlanScheduler
         return allocation;
     }
 
-    /// <summary>Each objective gets its own sessions; extra sessions go to the earliest objectives.</summary>
+    /// <summary>
+    /// One objective per session, in passes: every objective once, then a second pass, and so on.
+    /// Repetition comes only after first contact with the whole domain; a partial last pass covers
+    /// the earliest objectives.
+    /// </summary>
     private static List<IReadOnlyList<Guid>> Repeat(IReadOnlyList<Guid> objectives, int sessions)
     {
         var result = new List<IReadOnlyList<Guid>>(sessions);
-        for (var i = 0; i < objectives.Count; i++)
+        for (var i = 0; i < sessions; i++)
         {
-            var times = (sessions / objectives.Count) + (i < sessions % objectives.Count ? 1 : 0);
-            for (var t = 0; t < times; t++)
-            {
-                result.Add([objectives[i]]);
-            }
+            result.Add([objectives[i % objectives.Count]]);
         }
 
         return result;
