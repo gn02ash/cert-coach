@@ -17,7 +17,13 @@ Upload your study PDFs and ask questions about them. Answers come only from your
 
 ![The full plan, week by week](docs/screenshots/5-plan.png)
 
-The screenshots are taken by the end-to-end test in CI against `docker compose up`.
+| Ask your documents, with citations | Search them |
+|---|---|
+| ![An answer quoted from the sample PDF with citation chips and its sources](docs/screenshots/9-ask.png) | ![Search results with highlighted matches and page references](docs/screenshots/8-search.png) |
+
+![The Library with a processed PDF](docs/screenshots/7-library.png)
+
+The screenshots are taken by the end-to-end test in CI against `docker compose up`, in offline mode, so Ask shows quoted sentences rather than a written answer.
 
 </details>
 
