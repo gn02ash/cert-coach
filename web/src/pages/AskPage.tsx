@@ -29,7 +29,11 @@ export function AskPage() {
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => abort.current?.abort(), []);
-  useEffect(() => bottom.current?.scrollIntoView({ block: "end", behavior: "smooth" }), [exchanges.length]);
+  // A block body on purpose: newer browsers return a promise from scrollIntoView, and React would take a
+  // returned value for a cleanup function.
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+  }, [exchanges.length]);
 
   const update = (id: number, change: (e: Exchange) => Exchange) =>
     setExchanges((list) => list.map((e) => (e.id === id ? change(e) : e)));
