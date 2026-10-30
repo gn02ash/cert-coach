@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CertCoach.Domain\CertCoach.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
