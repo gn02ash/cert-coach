@@ -9,5 +9,6 @@
     <Project Path="tests/CertCoach.Api.IntegrationTests/CertCoach.Api.IntegrationTests.csproj" />
     <Project Path="tests/CertCoach.Application.Tests/CertCoach.Application.Tests.csproj" />
     <Project Path="tests/CertCoach.Domain.Tests/CertCoach.Domain.Tests.csproj" />
+    <Project Path="tests/CertCoach.Infrastructure.Tests/CertCoach.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>
