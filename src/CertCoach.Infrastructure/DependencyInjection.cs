@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ public static class DependencyInjection
                 $"Connection string '{ConnectionStringName}' is missing. Set ConnectionStrings__{ConnectionStringName}.")));
         services.AddScoped<ICertCoachDbContext>(sp => sp.GetRequiredService<CertCoachDbContext>());
         services.AddHealthChecks().AddDbContextCheck<CertCoachDbContext>("database");
+        services.AddAi(configuration);
 
         return services;
     }

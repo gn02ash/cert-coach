@@ -125,6 +125,10 @@ The scheduler is a pure, deterministic function: the same inputs always give the
 | **Real PostgreSQL in tests** | Testcontainers runs the real migrations against `pgvector/pgvector:pg17`, so tests check SQL behavior, not an in-memory approximation. |
 | **pgvector from the first migration** | Phase 2 embeddings need no schema-level extension change. |
 | **Deterministic outline parser before any LLM** | Works offline with no keys. The result is a draft you review. LLM-assisted parsing comes with the LLM provider abstraction in Phase 2. |
+| **`Microsoft.Extensions.AI` as the provider abstraction** | `IChatClient` and `IEmbeddingGenerator` are the standard .NET interfaces, and Anthropic and OpenAI ship adapters for them, so there is no hand-written provider layer to maintain. |
+| **One OpenAI SDK for Azure and OpenAI-compatible servers** | Azure OpenAI's v1 API speaks the OpenAI protocol, so Azure, OpenAI, Ollama and LM Studio share one code path. |
+| **Offline mode by default** | Embeddings fall back to a word-hashing model and answers to quoted passages, so the app, CI and the e2e test run without any API key. |
+| **Claude with server-side refusal fallback** | Requests opt into the API's default fallback model, so a policy decline is re-served instead of failing the answer. |
 
 ## Configuration
 
@@ -138,6 +142,12 @@ All settings are environment variables (`.env` for Docker Compose). No secrets a
 | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | empty | Enables "Sign in with Microsoft" |
 | `MICROSOFT_TENANT_ID` | `common` | `common` accepts work, school and personal accounts |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | empty | Enables "Sign in with Google" |
+| `AI_CHAT_PROVIDER` | `Offline` | Who answers questions: `Anthropic`, `AzureOpenAI`, `OpenAICompatible` or `Offline` |
+| `AI_CHAT_MODEL`, `AI_CHAT_API_KEY`, `AI_CHAT_ENDPOINT` | empty | Model (Anthropic defaults to `claude-opus-5-5`; for Azure, the deployment name), key, and endpoint for Azure or OpenAI-compatible servers |
+| `AI_EMBEDDINGS_PROVIDER` | `Offline` | Who embeds your documents: `AzureOpenAI`, `OpenAICompatible` or `Offline` |
+| `AI_EMBEDDINGS_MODEL`, `AI_EMBEDDINGS_API_KEY`, `AI_EMBEDDINGS_ENDPOINT` | empty | Deployment name (for example `text-embedding-3-small`), key and endpoint. Vectors are stored at 1536 dimensions. |
+
+The API checks these settings at startup and lists every missing one by name. `GET /api/ai/status` shows which providers are active.
 
 ### Sign in with Microsoft (Entra ID)
 

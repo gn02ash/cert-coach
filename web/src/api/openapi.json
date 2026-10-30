@@ -172,6 +172,27 @@
         }
       }
     },
+    "/api/ai/status": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Which chat and embedding providers are active; offline mode has no chat model.",
+        "operationId": "GetAiStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCapabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/certifications": {
       "get": {
         "tags": [
@@ -597,6 +618,40 @@
   },
   "components": {
     "schemas": {
+      "AiCapabilities": {
+        "required": [
+          "chatProvider",
+          "chatModel",
+          "embeddingProvider",
+          "embeddingModel",
+          "chatAvailable",
+          "semanticSearch"
+        ],
+        "type": "object",
+        "properties": {
+          "chatProvider": {
+            "type": "string"
+          },
+          "chatModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "embeddingProvider": {
+            "type": "string"
+          },
+          "embeddingModel": {
+            "type": "string"
+          },
+          "chatAvailable": {
+            "type": "boolean"
+          },
+          "semanticSearch": {
+            "type": "boolean"
+          }
+        }
+      },
       "AuthProvider": {
         "required": [
           "id",
@@ -1541,6 +1596,9 @@
     },
     {
       "name": "Dashboard"
+    },
+    {
+      "name": "AI"
     },
     {
       "name": "Plans"
