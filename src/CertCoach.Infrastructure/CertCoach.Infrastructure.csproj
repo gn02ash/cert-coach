@@ -8,10 +8,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CertCoach.Infrastructure.Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CertCoach.Application\CertCoach.Application.csproj" />
   </ItemGroup>
 
