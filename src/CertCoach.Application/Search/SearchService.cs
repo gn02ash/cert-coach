@@ -45,7 +45,12 @@ public sealed class SearchService(
         if (request.Mode is SearchMode.Hybrid or SearchMode.Vector)
         {
             var queryVector = (await embeddings.GenerateVectorAsync(query, cancellationToken: ct)).ToArray();
-            vector = await retriever.VectorSearchAsync(user.UserId, queryVector, request.CertificationId, candidates, ct);
+
+            // A query of stop words only embeds to zeros offline, and cosine distance to a zero vector is undefined.
+            if (queryVector.Any(v => v != 0))
+            {
+                vector = await retriever.VectorSearchAsync(user.UserId, queryVector, request.CertificationId, candidates, ct);
+            }
         }
 
         if (request.Mode is SearchMode.Hybrid or SearchMode.Text)

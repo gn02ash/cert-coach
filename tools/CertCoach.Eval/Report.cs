@@ -28,7 +28,7 @@ internal static class Report
         md.AppendLine("|---|---:|---:|---:|");
         foreach (var mode in result.Modes)
         {
-            md.AppendLine(Invariant, $"| {mode.Mode} | {mode.RecallAt1:P0} | {mode.RecallAt5:P0} | {mode.Mrr:F2} |");
+            md.AppendLine(Invariant, $"| {mode.Mode} | {Percent(mode.RecallAt1)} | {Percent(mode.RecallAt5)} | {mode.Mrr:F2} |");
         }
 
         md.AppendLine();
@@ -40,7 +40,7 @@ internal static class Report
             md.AppendLine("## Hybrid misses (not in the top 5)").AppendLine();
             foreach (var miss in hybridMisses)
             {
-                var top = miss.Top is { } t ? $"{t.DocumentTitle} › {t.HeadingPath}" : "nothing";
+                var top = miss.Top is { } t ? (t.HeadingPath.Length > 0 ? t.HeadingPath : t.DocumentTitle) : "nothing";
                 var rank = miss.Rank is { } r ? $"rank {r}" : "not in top 10";
                 md.AppendLine(Invariant, $"- `{miss.Question.Id}` {miss.Question.Question} ({rank}; top result: {top})");
             }
@@ -94,7 +94,9 @@ internal static class Report
         md.AppendLine();
     }
 
-    private static string Share(int part, int total) => total == 0 ? "n/a" : ((double)part / total).ToString("P0", Invariant);
+    private static string Share(int part, int total) => total == 0 ? "n/a" : Percent((double)part / total);
+
+    private static string Percent(double share) => (share * 100).ToString("F0", Invariant) + "%";
 
     private static string Min(List<double> sorted) => sorted.Count == 0 ? "n/a" : sorted[0].ToString("F2", Invariant);
 
