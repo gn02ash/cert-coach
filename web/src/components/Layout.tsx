@@ -21,6 +21,7 @@ export function Layout() {
               Today
             </NavLink>
             <NavLink to="/certifications">Certifications</NavLink>
+            <NavLink to="/library">Library</NavLink>
           </nav>
           <div className="user">
             <span className="user-name">{me.data?.displayName}</span>
