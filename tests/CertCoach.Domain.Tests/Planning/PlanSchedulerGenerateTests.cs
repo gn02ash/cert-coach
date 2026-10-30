@@ -49,6 +49,25 @@ public class PlanSchedulerGenerateTests
     }
 
     [Fact]
+    public void Each_domain_covers_all_its_objectives_before_repeating_any()
+    {
+        var outline = ThreeDomains();
+
+        var learn = PlanScheduler.Generate(Settings(weeks: 8), outline).Sessions.Where(s => s.Kind == SessionKind.Learn).ToList();
+
+        foreach (var domain in outline)
+        {
+            var order = learn.Select(s => s.ObjectiveIds[0]).Where(domain.ObjectiveIds.Contains).ToList();
+            order.Count.ShouldBeGreaterThan(domain.ObjectiveIds.Count);
+            order.Take(domain.ObjectiveIds.Count).ShouldBe(domain.ObjectiveIds);
+            for (var i = domain.ObjectiveIds.Count; i < order.Count; i++)
+            {
+                order[i].ShouldBe(order[i - domain.ObjectiveIds.Count]);
+            }
+        }
+    }
+
+    [Fact]
     public void Review_buffer_and_mock_exams_come_last_before_the_exam()
     {
         var settings = Settings(weeks: 6);
