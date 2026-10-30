@@ -1,5 +1,7 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Infrastructure.Ai;
+using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +24,8 @@ public static class DependencyInjection
         services.AddScoped<ICertCoachDbContext>(sp => sp.GetRequiredService<CertCoachDbContext>());
         services.AddHealthChecks().AddDbContextCheck<CertCoachDbContext>("database");
         services.AddAi(configuration);
+        services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
+        services.AddSingleton<ITokenCounter, TiktokenTokenCounter>();
 
         return services;
     }

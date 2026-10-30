@@ -8,7 +8,10 @@
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="PdfPig" />
   </ItemGroup>
 
   <ItemGroup>
