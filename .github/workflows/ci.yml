@@ -50,7 +50,8 @@ jobs:
         with:
           global-json-file: global.json
       - name: Ingest the synthetic corpus and score retrieval
-        run: dotnet run --project tools/CertCoach.Eval -c Release -- --out eval-results/offline.md
+        # Floors sit a little under the current offline scores (hybrid recall@5 100%, MRR 0.89).
+        run: dotnet run --project tools/CertCoach.Eval -c Release -- --out eval-results/offline.md --min-recall5 0.9 --min-mrr 0.8
       - name: Publish the report on the run summary
         if: always()
         run: cat eval-results/offline.md >> "$GITHUB_STEP_SUMMARY" || true

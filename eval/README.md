@@ -30,6 +30,7 @@ Other options:
 | `--connection "<postgres>"` | Use an existing database instead of a container. A new user is created, so existing data is left alone. |
 | `--chunk-tokens <n>` | Try another chunk size. |
 | `--min-recall5 <0..1>`, `--min-mrr <0..1>` | Exit with an error when hybrid search scores below these, for CI. |
+| `--export <dir>` | Write the corpus as PDFs, for example to upload them and try Search and Ask. |
 | `--dry-run` | Only typeset, extract and chunk the corpus, list the chunks, and check that every evidence phrase lands inside one chunk. No database. |
 
 ## Metrics

@@ -33,10 +33,11 @@ internal static class MarkdownPdf
             page.AddText($"{footer} - page {pageNumber}", 8, new PdfPoint(Margin, 30), font);
         }
 
-        void Write(string text, double size, PdfDocumentBuilder.AddedFont face, double spaceBefore)
+        // keepWithNext reserves room for the start of the next paragraph, so a heading never ends a page.
+        void Write(string text, double size, PdfDocumentBuilder.AddedFont face, double spaceBefore, double keepWithNext = 0)
         {
             var lines = Wrap(text, size).ToList();
-            if (page is null || y - spaceBefore - size * 1.35 * Math.Min(lines.Count, 3) < Margin)
+            if (page is null || y - spaceBefore - size * 1.35 * Math.Min(lines.Count, 3) - keepWithNext < Margin)
             {
                 NewPage();
             }
@@ -65,10 +66,10 @@ internal static class MarkdownPdf
                     Write(text, 20, bold, 0);
                     break;
                 case "##":
-                    Write(text, 15, bold, 14);
+                    Write(text, 15, bold, 14, keepWithNext: 3 * BodySize * 1.35);
                     break;
                 case "###":
-                    Write(text, 13, bold, 10);
+                    Write(text, 13, bold, 10, keepWithNext: 3 * BodySize * 1.35);
                     break;
                 default:
                     Write(text, BodySize, font, 7);

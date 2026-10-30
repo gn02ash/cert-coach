@@ -5,6 +5,7 @@
 //   dotnet run --project tools/CertCoach.Eval -- [--connection <postgres>] [--out <file.md>]
 //                                               [--min-recall5 <0..1>] [--min-mrr <0..1>] [--chunk-tokens <n>]
 //   dotnet run --project tools/CertCoach.Eval -- --dry-run     (chunk the corpus and check the labels; no database)
+//   dotnet run --project tools/CertCoach.Eval -- --export <dir> (write the corpus PDFs, e.g. to try the app with)
 //
 // Without --connection it starts a throwaway pgvector container (needs Docker). Embeddings use the same
 // settings as the app: AI_EMBEDDINGS_* from the environment or the repository's .env, offline by default.
@@ -32,6 +33,19 @@ var questions = File.ReadLines(Path.Combine(root, "eval", "questions.jsonl"))
     .Where(l => l.Trim().Length > 0)
     .Select(l => JsonSerializer.Deserialize<EvalQuestion>(l, EvalQuestion.Json)!)
     .ToList();
+
+if (options.Export is { } exportDirectory)
+{
+    Directory.CreateDirectory(exportDirectory);
+    foreach (var path in Directory.GetFiles(Path.Combine(root, "eval", "corpus"), "*.md"))
+    {
+        var target = Path.Combine(exportDirectory, Path.GetFileNameWithoutExtension(path) + ".pdf");
+        await File.WriteAllBytesAsync(target, MarkdownPdf.Render(await File.ReadAllTextAsync(path), "DEMO-101 study notes"));
+        Console.WriteLine(target);
+    }
+
+    return 0;
+}
 
 if (options.DryRun)
 {
@@ -133,7 +147,8 @@ static string RepositoryRoot()
 
 namespace CertCoach.Eval
 {
-    internal sealed record EvalOptions(string? Connection, string? Out, double? MinRecall5, double? MinMrr, int? ChunkTokens, bool DryRun)
+    internal sealed record EvalOptions(
+        string? Connection, string? Out, double? MinRecall5, double? MinMrr, int? ChunkTokens, bool DryRun, string? Export)
     {
         public static EvalOptions Parse(string[] args)
         {
@@ -151,7 +166,8 @@ namespace CertCoach.Eval
                 Number("--min-recall5"),
                 Number("--min-mrr"),
                 Value("--chunk-tokens") is { } c ? int.Parse(c, CultureInfo.InvariantCulture) : null,
-                args.Contains("--dry-run"));
+                args.Contains("--dry-run"),
+                Value("--export"));
         }
     }
 
