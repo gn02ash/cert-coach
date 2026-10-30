@@ -23,6 +23,7 @@ export function Layout() {
             <NavLink to="/certifications">Certifications</NavLink>
             <NavLink to="/library">Library</NavLink>
             <NavLink to="/search">Search</NavLink>
+            <NavLink to="/ask">Ask</NavLink>
           </nav>
           <div className="user">
             <span className="user-name">{me.data?.displayName}</span>
