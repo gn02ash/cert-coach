@@ -101,6 +101,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/outlines/parse-ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Parse an outline in any layout with the chat model. Needs a chat provider. */
+        post: operations["ParseOutlineWithAi"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard": {
         parameters: {
             query?: never;
@@ -111,6 +128,57 @@ export interface paths {
         get: operations["GetDashboard"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which chat and embedding providers are active; offline mode has no chat model. */
+        get: operations["GetAiStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find the passages in your documents that best match a question or topic. */
+        get: operations["Search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a question from your documents, streamed as server-sent events: sources, then deltas, then done. */
+        post: operations["Ask"];
         delete?: never;
         options?: never;
         head?: never;
@@ -264,10 +332,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListDocuments"];
+        put?: never;
+        /** Upload a PDF. It is processed in the background; poll the list for its status. */
+        post: operations["UploadDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateDocument"];
+        post?: never;
+        delete: operations["DeleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Process a failed document again. */
+        post: operations["RetryDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetDocumentFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AiCapabilities: {
+            chatProvider: string;
+            chatModel: null | string;
+            embeddingProvider: string;
+            embeddingModel: string;
+            chatAvailable: boolean;
+            semanticSearch: boolean;
+        };
+        AskRequest: {
+            question: string;
+            /** Format: uuid */
+            certificationId?: null | string;
+            history?: null | components["schemas"]["AskTurn"][];
+        };
+        /** @enum {unknown} */
+        AskRole: "User" | "Assistant";
+        AskTurn: {
+            role: components["schemas"]["AskRole"];
+            text: string;
+        };
         AuthProvider: {
             id: string;
             name: string;
@@ -320,6 +474,29 @@ export interface components {
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+        /** @enum {unknown} */
+        DocumentStatus: "Pending" | "Processing" | "Ready" | "Failed";
+        DocumentSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            fileName: string;
+            /** Format: int64 */
+            sizeBytes: number;
+            status: components["schemas"]["DocumentStatus"];
+            error: null | string;
+            /** Format: int32 */
+            pageCount: null | number;
+            /** Format: int32 */
+            chunkCount: number;
+            /** Format: uuid */
+            certificationId: null | string;
+            examCode: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            processedAt: null | string;
+        };
         DomainDraft: {
             name: string;
             /** Format: int32 */
@@ -349,6 +526,8 @@ export interface components {
             weightMaxPercent: number;
             skillAreas: components["schemas"]["SkillAreaView"][];
         };
+        /** Format: binary */
+        IFormFile: string;
         ObjectiveView: {
             /** Format: uuid */
             id: string;
@@ -472,6 +651,35 @@ export interface components {
             replacedByExamCode: null | string;
             outline: components["schemas"]["DomainDraft"][];
         };
+        SearchHit: {
+            /** Format: uuid */
+            chunkId: string;
+            /** Format: uuid */
+            documentId: string;
+            documentTitle: string;
+            headingPath: string;
+            /** Format: int32 */
+            pageStart: number;
+            /** Format: int32 */
+            pageEnd: number;
+            text: string;
+            /** Format: double */
+            score: number;
+            /** Format: double */
+            similarity: null | number;
+            /** Format: int32 */
+            vectorRank: null | number;
+            /** Format: int32 */
+            textRank: null | number;
+        };
+        /** @enum {unknown} */
+        SearchMode: "Hybrid" | "Vector" | "Text";
+        SearchResponse: {
+            query: string;
+            mode: components["schemas"]["SearchMode"];
+            semantic: boolean;
+            hits: components["schemas"]["SearchHit"][];
+        };
         /** @enum {unknown} */
         SessionKind: "Learn" | "Review" | "MockExam";
         SessionObjectiveView: {
@@ -514,8 +722,19 @@ export interface components {
             name: string;
             objectives: components["schemas"]["ObjectiveView"][];
         };
+        SseItemOfObject: {
+            data?: unknown;
+            eventType?: null | string;
+            eventId?: null | string;
+            reconnectionInterval?: null | string;
+        };
         TimeZoneRequest: {
             timeZone: string;
+        };
+        UpdateDocumentRequest: {
+            title: string;
+            /** Format: uuid */
+            certificationId: null | string;
         };
         UserProfile: {
             /** Format: uuid */
@@ -661,6 +880,30 @@ export interface operations {
             };
         };
     };
+    ParseOutlineWithAi: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParseOutlineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineDraft"];
+                };
+            };
+        };
+    };
     GetDashboard: {
         parameters: {
             query?: never;
@@ -677,6 +920,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DashboardView"];
+                };
+            };
+        };
+    };
+    GetAiStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiCapabilities"];
+                };
+            };
+        };
+    };
+    Search: {
+        parameters: {
+            query: {
+                q: string;
+                certificationId?: string;
+                limit?: number;
+                mode?: components["schemas"]["SearchMode"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    Ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseItemOfObject"];
                 };
             };
         };
@@ -990,6 +1302,143 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlanView"];
                 };
+            };
+        };
+    };
+    ListDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"][];
+                };
+            };
+        };
+    };
+    UploadDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                } & {
+                    /** Format: uuid */
+                    certificationId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    UpdateDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    DeleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RetryDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
+                };
+            };
+        };
+    };
+    GetDocumentFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

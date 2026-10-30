@@ -1,4 +1,5 @@
 using CertCoach.Domain.Certifications;
+using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -31,5 +32,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         // Owner foreign keys live here so the owned aggregates stay unaware of the User type.
         builder.HasMany<Certification>().WithOne().HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany<StudyPlan>().WithOne().HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany<Document>().WithOne().HasForeignKey(d => d.OwnerId).OnDelete(DeleteBehavior.Cascade);
     }
 }

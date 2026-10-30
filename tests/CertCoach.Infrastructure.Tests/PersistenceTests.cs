@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CertCoach.Infrastructure.Tests;
 
+[Collection(PostgresDatabase.Name)]
 public class PersistenceTests(PostgresFixture postgres)
 {
     private static readonly DateOnly Monday = new(2026, 11, 2);

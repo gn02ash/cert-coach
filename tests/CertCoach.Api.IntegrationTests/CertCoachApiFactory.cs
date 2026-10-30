@@ -39,6 +39,7 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
     };
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("pgvector/pgvector:pg17").Build();
+    private readonly string _uploads = Path.Combine(Path.GetTempPath(), "certcoach-tests", Guid.NewGuid().ToString("N"));
 
     /// <summary>Fixed for the whole run; tests needing past dates use past start dates instead of moving time.</summary>
     public FakeTimeProvider Clock { get; } = new(StartTime);
@@ -70,6 +71,10 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
+        if (Directory.Exists(_uploads))
+        {
+            Directory.Delete(_uploads, recursive: true);
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -78,6 +83,11 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("ConnectionStrings:CertCoach", _postgres.GetConnectionString());
         builder.UseSetting("Database:MigrateOnStartup", "true");
         builder.UseSetting("Auth:DevLogin:Enabled", "true");
+        builder.UseSetting("Storage:Path", _uploads);
+
+        // Test PDFs have a sentence or two per section; small chunks keep sections apart as real ones would be.
+        builder.UseSetting("Ingestion:Chunking:TargetTokens", "28");
+        builder.UseSetting("Ingestion:Chunking:OverlapTokens", "0");
 
         builder.ConfigureTestServices(services =>
         {

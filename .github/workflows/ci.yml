@@ -41,6 +41,27 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  eval:
+    name: retrieval eval (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Ingest the synthetic corpus and score retrieval
+        # Floors sit a little under the current offline scores (hybrid recall@5 100%, MRR 0.89).
+        run: dotnet run --project tools/CertCoach.Eval -c Release -- --out eval-results/offline.md --min-recall5 0.9 --min-mrr 0.8
+      - name: Publish the report on the run summary
+        if: always()
+        run: cat eval-results/offline.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retrieval-eval
+          path: eval-results/
+          if-no-files-found: ignore
+
   e2e:
     name: e2e (docker compose)
     runs-on: ubuntu-latest

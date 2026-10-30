@@ -91,28 +91,34 @@ public static partial class OutlineParser
             }
         }
 
-        AddWarnings(domains, sawMarkers, warnings);
+        var drafts = domains
+            .Select(d => new DomainDraft(
+                d.Name,
+                d.Min,
+                d.Max,
+                d.SkillAreas
+                    .Where(s => s.Objectives.Count > 0)
+                    .Select(s => new SkillAreaDraft(s.Name, s.Objectives.ToList()))
+                    .ToList()))
+            .ToList();
 
-        return new OutlineDraft(
-            domains
-                .Select(d => new DomainDraft(
-                    d.Name,
-                    d.Min,
-                    d.Max,
-                    d.SkillAreas
-                        .Where(s => s.Objectives.Count > 0)
-                        .Select(s => new SkillAreaDraft(s.Name, s.Objectives.ToList()))
-                        .ToList()))
-                .ToList(),
-            warnings);
+        warnings.AddRange(Check(drafts));
+        if (drafts.Count > 0 && !sawMarkers && drafts.Any(d => d.SkillAreas.Count > 0))
+        {
+            warnings.Add("No headings or bullets found, so every line was treated as an objective. Group them into skill areas in the editor.");
+        }
+
+        return new OutlineDraft(drafts, warnings);
     }
 
-    private static void AddWarnings(List<DomainBuilder> domains, bool sawMarkers, List<string> warnings)
+    /// <summary>Problems worth a second look in any parsed outline, however it was parsed.</summary>
+    public static List<string> Check(IReadOnlyList<DomainDraft> domains)
     {
+        var warnings = new List<string>();
         if (domains.Count == 0)
         {
             warnings.Add("No domains found. Each domain line needs a weight, for example \"Plan a solution (15–20%)\".");
-            return;
+            return warnings;
         }
 
         foreach (var d in domains.Where(d => d.SkillAreas.All(s => s.Objectives.Count == 0)))
@@ -120,7 +126,7 @@ public static partial class OutlineParser
             warnings.Add($"Domain \"{d.Name}\" has no objectives.");
         }
 
-        var midpointTotal = domains.Sum(d => (d.Min + d.Max) / 2m);
+        var midpointTotal = domains.Sum(d => (d.WeightMinPercent + d.WeightMaxPercent) / 2m);
         if (midpointTotal is < 90 or > 110)
         {
             warnings.Add(string.Create(
@@ -128,10 +134,7 @@ public static partial class OutlineParser
                 $"Domain weights add up to about {midpointTotal:0}% instead of 100%. Check the percentages."));
         }
 
-        if (!sawMarkers && domains.Any(d => d.SkillAreas.Count > 0))
-        {
-            warnings.Add("No headings or bullets found, so every line was treated as an objective. Group them into skill areas in the editor.");
-        }
+        return warnings;
     }
 
     private static bool TryParseDomain(string content, out string name, out int min, out int max)

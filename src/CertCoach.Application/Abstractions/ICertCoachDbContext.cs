@@ -1,7 +1,10 @@
 using CertCoach.Domain.Certifications;
+using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace CertCoach.Application.Abstractions;
 
@@ -16,6 +19,15 @@ public interface ICertCoachDbContext
     DbSet<StudyPlan> StudyPlans { get; }
 
     DbSet<User> Users { get; }
+
+    DbSet<Document> Documents { get; }
+
+    DbSet<DocumentChunk> DocumentChunks { get; }
+
+    /// <summary>For transactions and set-based updates that span more than one save.</summary>
+    DatabaseFacade Database { get; }
+
+    ChangeTracker ChangeTracker { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -65,7 +65,11 @@ app.MapGroup("/api")
     .RequireAuthorization()
     .AddEndpointFilter<CsrfHeaderFilter>()
     .MapCertificationEndpoints()
-    .MapPlanEndpoints();
+    .MapPlanEndpoints()
+    .MapAiEndpoints()
+    .MapDocumentEndpoints()
+    .MapSearchEndpoints()
+    .MapAskEndpoints();
 
 await app.RunAsync();
 

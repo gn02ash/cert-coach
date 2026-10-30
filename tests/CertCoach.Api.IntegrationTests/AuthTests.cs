@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using CertCoach.Api.Auth;
 using CertCoach.Application.Users;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using static CertCoach.Api.IntegrationTests.CertCoachApiFactory;
 
 namespace CertCoach.Api.IntegrationTests;
@@ -54,6 +55,22 @@ public class AuthTests(CertCoachApiFactory factory)
 
         (await client.PostAsync("/auth/logout", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await client.GetAsync("/auth/me", Ct)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Simultaneous_first_sign_ins_end_up_as_one_user()
+    {
+        var identity = new ExternalIdentity("google", Guid.NewGuid().ToString(), "Two tabs", null, Guid.NewGuid());
+
+        async Task<Guid> SignInAsync()
+        {
+            await using var scope = factory.Services.CreateAsyncScope();
+            return (await scope.ServiceProvider.GetRequiredService<UserAccountService>().SignInAsync(identity, Ct)).Id;
+        }
+
+        var ids = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Task.Run(SignInAsync, Ct)));
+
+        ids.Distinct().ShouldHaveSingleItem().ShouldBe(identity.FixedUserId!.Value);
     }
 
     [Theory]

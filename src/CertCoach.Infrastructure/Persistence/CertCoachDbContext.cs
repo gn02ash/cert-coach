@@ -1,5 +1,6 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Domain.Certifications;
+using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -20,16 +21,22 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<Document> Documents => Set<Document>();
+
+    public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+
     private Guid? OwnerFilter => currentUser?.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Enabled from the first migration so Phase 2 embeddings need no extension change.
+        // Enabled from the first migration, before any table used it.
         modelBuilder.HasPostgresExtension("vector");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CertCoachDbContext).Assembly);
 
         modelBuilder.Entity<Certification>().HasQueryFilter(c => OwnerFilter == null || c.OwnerId == OwnerFilter);
         modelBuilder.Entity<StudyPlan>().HasQueryFilter(p => OwnerFilter == null || p.OwnerId == OwnerFilter);
+        modelBuilder.Entity<Document>().HasQueryFilter(d => OwnerFilter == null || d.OwnerId == OwnerFilter);
+        modelBuilder.Entity<DocumentChunk>().HasQueryFilter(c => OwnerFilter == null || c.OwnerId == OwnerFilter);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -39,5 +46,6 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
         configurationBuilder.Properties<PlanStatus>().HaveConversion<string>().HaveMaxLength(16);
         configurationBuilder.Properties<SessionKind>().HaveConversion<string>().HaveMaxLength(16);
         configurationBuilder.Properties<SessionStatus>().HaveConversion<string>().HaveMaxLength(16);
+        configurationBuilder.Properties<DocumentStatus>().HaveConversion<string>().HaveMaxLength(16);
     }
 }

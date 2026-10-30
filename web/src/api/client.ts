@@ -1,3 +1,4 @@
+import { readSse } from "../lib/sse";
 import type { components } from "./schema";
 
 type Schemas = components["schemas"];
@@ -20,6 +21,31 @@ export type PlanView = Schemas["PlanView"];
 export type PlanWarning = Schemas["PlanWarning"];
 export type CapacityShortfall = Schemas["CapacityShortfall"];
 export type DayOfWeek = Schemas["DayOfWeek"];
+export type DocumentSummary = Schemas["DocumentSummary"];
+export type DocumentStatus = Schemas["DocumentStatus"];
+export type UpdateDocumentRequest = Schemas["UpdateDocumentRequest"];
+export type AiCapabilities = Schemas["AiCapabilities"];
+export type SearchResponse = Schemas["SearchResponse"];
+export type SearchHit = Schemas["SearchHit"];
+export type AskRequest = Schemas["AskRequest"];
+export type AskTurn = Schemas["AskTurn"];
+
+/** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
+export interface AskSource {
+  number: number;
+  chunkId: string;
+  documentId: string;
+  documentTitle: string;
+  headingPath: string;
+  pageStart: number;
+  pageEnd: number;
+  text: string;
+}
+export type AnswerKind = "Ai" | "Quoted" | "NotCovered" | "Declined";
+export type AskEvent =
+  | { type: "sources"; sources: AskSource[] }
+  | { type: "delta"; text: string }
+  | { type: "done"; kind: AnswerKind; cited: number[]; notice: string | null };
 
 /** An HTTP error, carrying the problem-details message from the API when there is one. */
 export class ApiError extends Error {
@@ -54,6 +80,41 @@ export async function api<T>(path: string, method: Method = "GET", body?: unknow
   }
 
   return response.status === 204 ? (undefined as T) : ((await response.json()) as T);
+}
+
+/** Posts a multipart form, such as a file upload. The browser sets the multipart boundary. */
+export async function upload<T>(path: string, form: FormData): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { Accept: "application/json", "X-CSRF": "1" },
+    credentials: "same-origin",
+    body: form,
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, await problemMessage(response));
+  }
+
+  return (await response.json()) as T;
+}
+
+/** Streams an answer: calls onEvent for the sources, each piece of text, and the final summary. */
+export async function askStream(request: AskRequest, onEvent: (event: AskEvent) => void, signal?: AbortSignal) {
+  const response = await fetch("/api/ask", {
+    method: "POST",
+    headers: { Accept: "text/event-stream", "Content-Type": "application/json", "X-CSRF": "1" },
+    credentials: "same-origin",
+    body: JSON.stringify(request),
+    signal,
+  });
+
+  if (!response.ok || !response.body) {
+    throw new ApiError(response.status, await problemMessage(response));
+  }
+
+  for await (const message of readSse(response.body)) {
+    onEvent({ type: message.event, ...JSON.parse(message.data) } as AskEvent);
+  }
 }
 
 async function problemMessage(response: Response): Promise<string> {

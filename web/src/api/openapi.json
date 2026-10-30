@@ -152,6 +152,37 @@
         }
       }
     },
+    "/api/outlines/parse-ai": {
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "summary": "Parse an outline in any layout with the chat model. Needs a chat provider.",
+        "operationId": "ParseOutlineWithAi",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseOutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboard": {
       "get": {
         "tags": [
@@ -165,6 +196,112 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DashboardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/status": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "summary": "Which chat and embedding providers are active; offline mode has no chat model.",
+        "operationId": "GetAiStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCapabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Find the passages in your documents that best match a question or topic.",
+        "operationId": "Search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "certificationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SearchMode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ask": {
+      "post": {
+        "tags": [
+          "Ask"
+        ],
+        "summary": "Answer a question from your documents, streamed as server-sent events: sources, then deltas, then done.",
+        "operationId": "Ask",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/SseItemOfObject"
                 }
               }
             }
@@ -593,10 +730,285 @@
           }
         }
       }
+    },
+    "/api/documents": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "ListDocuments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Upload a PDF. It is processed in the background; poll the list for its status.",
+        "operationId": "UploadDocument",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "certificationId": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{id}": {
+      "put": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "UpdateDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSummary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "DeleteDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/documents/{id}/retry": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Process a failed document again.",
+        "operationId": "RetryDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{id}/file": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "GetDocumentFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AiCapabilities": {
+        "required": [
+          "chatProvider",
+          "chatModel",
+          "embeddingProvider",
+          "embeddingModel",
+          "chatAvailable",
+          "semanticSearch"
+        ],
+        "type": "object",
+        "properties": {
+          "chatProvider": {
+            "type": "string"
+          },
+          "chatModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "embeddingProvider": {
+            "type": "string"
+          },
+          "embeddingModel": {
+            "type": "string"
+          },
+          "chatAvailable": {
+            "type": "boolean"
+          },
+          "semanticSearch": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AskRequest": {
+        "required": [
+          "question"
+        ],
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "history": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/AskTurn"
+            }
+          }
+        }
+      },
+      "AskRole": {
+        "enum": [
+          "User",
+          "Assistant"
+        ]
+      },
+      "AskTurn": {
+        "required": [
+          "role",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/AskRole"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
       "AuthProvider": {
         "required": [
           "id",
@@ -791,6 +1203,91 @@
           "Saturday"
         ]
       },
+      "DocumentStatus": {
+        "enum": [
+          "Pending",
+          "Processing",
+          "Ready",
+          "Failed"
+        ]
+      },
+      "DocumentSummary": {
+        "required": [
+          "id",
+          "title",
+          "fileName",
+          "sizeBytes",
+          "status",
+          "error",
+          "pageCount",
+          "chunkCount",
+          "certificationId",
+          "examCode",
+          "createdAt",
+          "processedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pageCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "chunkCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "DomainDraft": {
         "required": [
           "name",
@@ -882,6 +1379,10 @@
             }
           }
         }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
       },
       "ObjectiveView": {
         "required": [
@@ -1336,6 +1837,107 @@
           }
         }
       },
+      "SearchHit": {
+        "required": [
+          "chunkId",
+          "documentId",
+          "documentTitle",
+          "headingPath",
+          "pageStart",
+          "pageEnd",
+          "text",
+          "score",
+          "similarity",
+          "vectorRank",
+          "textRank"
+        ],
+        "type": "object",
+        "properties": {
+          "chunkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTitle": {
+            "type": "string"
+          },
+          "headingPath": {
+            "type": "string"
+          },
+          "pageStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageEnd": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "similarity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "vectorRank": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "textRank": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SearchMode": {
+        "enum": [
+          "Hybrid",
+          "Vector",
+          "Text"
+        ]
+      },
+      "SearchResponse": {
+        "required": [
+          "query",
+          "mode",
+          "semantic",
+          "hits"
+        ],
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/SearchMode"
+          },
+          "semantic": {
+            "type": "boolean"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            }
+          }
+        }
+      },
       "SessionKind": {
         "enum": [
           "Learn",
@@ -1492,6 +2094,31 @@
           }
         }
       },
+      "SseItemOfObject": {
+        "type": "object",
+        "properties": {
+          "data": { },
+          "eventType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eventId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reconnectionInterval": {
+            "pattern": "^-?(\\d+\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "TimeZoneRequest": {
         "required": [
           "timeZone"
@@ -1500,6 +2127,25 @@
         "properties": {
           "timeZone": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateDocumentRequest": {
+        "required": [
+          "title",
+          "certificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -1543,7 +2189,19 @@
       "name": "Dashboard"
     },
     {
+      "name": "AI"
+    },
+    {
+      "name": "Search"
+    },
+    {
+      "name": "Ask"
+    },
+    {
       "name": "Plans"
+    },
+    {
+      "name": "Documents"
     }
   ]
 }

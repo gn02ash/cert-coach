@@ -4,13 +4,18 @@ import {
   type AuthProvider,
   type CertificationDetail,
   type CertificationSummary,
+  type AiCapabilities,
   type DashboardView,
+  type DocumentSummary,
   type OutlineDraft,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
+  type SearchResponse,
   type SaveCertificationRequest,
+  type UpdateDocumentRequest,
   type UserProfile,
+  upload,
 } from "./client";
 
 export const keys = {
@@ -20,6 +25,9 @@ export const keys = {
   certifications: ["certifications"] as const,
   certification: (id: string) => ["certifications", id] as const,
   plan: (id: string) => ["plans", id] as const,
+  documents: ["documents"] as const,
+  aiStatus: ["ai-status"] as const,
+  search: (query: string, certificationId?: string) => ["search", query, certificationId ?? ""] as const,
 };
 
 export const useMe = () =>
@@ -64,7 +72,10 @@ export function useSetTimeZone() {
 }
 
 export const useParseOutline = () =>
-  useMutation({ mutationFn: (text: string) => api<OutlineDraft>("/api/outlines/parse", "POST", { text }) });
+  useMutation({
+    mutationFn: ({ text, ai }: { text: string; ai?: boolean }) =>
+      api<OutlineDraft>(ai ? "/api/outlines/parse-ai" : "/api/outlines/parse", "POST", { text }),
+  });
 
 export function useSaveCertification(id: string | undefined) {
   const client = useQueryClient();
@@ -114,3 +125,52 @@ export const useRescheduleOverdue = () =>
 
 export const useArchivePlan = () =>
   usePlanMutation((planId: string) => api<PlanView>(`/api/plans/${planId}/archive`, "POST"));
+
+export const useAiStatus = () =>
+  useQuery({ queryKey: keys.aiStatus, queryFn: () => api<AiCapabilities>("/api/ai/status"), staleTime: Infinity });
+
+/** Polls while any document is still being processed, so statuses update without a refresh. */
+export const useDocuments = () =>
+  useQuery({
+    queryKey: keys.documents,
+    queryFn: () => api<DocumentSummary[]>("/api/documents"),
+    refetchInterval: (query) =>
+      query.state.data?.some((d) => d.status === "Pending" || d.status === "Processing") ? 2000 : false,
+  });
+
+function useDocumentMutation<TArgs, TResult>(call: (args: TArgs) => Promise<TResult>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: call,
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.documents }),
+  });
+}
+
+export const useUploadDocument = () =>
+  useDocumentMutation(({ file, certificationId }: { file: File; certificationId?: string }) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (certificationId) form.append("certificationId", certificationId);
+    return upload<DocumentSummary>("/api/documents", form);
+  });
+
+export const useUpdateDocument = () =>
+  useDocumentMutation(({ id, request }: { id: string; request: UpdateDocumentRequest }) =>
+    api<DocumentSummary>(`/api/documents/${id}`, "PUT", request),
+  );
+
+export const useRetryDocument = () =>
+  useDocumentMutation((id: string) => api<DocumentSummary>(`/api/documents/${id}/retry`, "POST"));
+
+export const useDeleteDocument = () => useDocumentMutation((id: string) => api<void>(`/api/documents/${id}`, "DELETE"));
+
+export const useSearch = (query: string, certificationId?: string) =>
+  useQuery({
+    queryKey: keys.search(query, certificationId),
+    queryFn: () => {
+      const params = new URLSearchParams({ q: query });
+      if (certificationId) params.set("certificationId", certificationId);
+      return api<SearchResponse>(`/api/search?${params}`);
+    },
+    enabled: query.trim().length > 0,
+  });
