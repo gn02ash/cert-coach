@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Ask;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Dashboard;
 using CertCoach.Application.Documents;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<DocumentService>();
         services.AddScoped<DocumentIngestionService>();
         services.AddScoped<SearchService>();
+        services.AddScoped<AskService>();
         return services;
     }
 }

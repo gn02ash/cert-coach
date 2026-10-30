@@ -151,6 +151,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a question from your documents, streamed as server-sent events: sources, then deltas, then done. */
+        post: operations["Ask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/certifications": {
         parameters: {
             query?: never;
@@ -375,6 +392,18 @@ export interface components {
             embeddingModel: string;
             chatAvailable: boolean;
             semanticSearch: boolean;
+        };
+        AskRequest: {
+            question: string;
+            /** Format: uuid */
+            certificationId?: null | string;
+            history?: null | components["schemas"]["AskTurn"][];
+        };
+        /** @enum {unknown} */
+        AskRole: "User" | "Assistant";
+        AskTurn: {
+            role: components["schemas"]["AskRole"];
+            text: string;
         };
         AuthProvider: {
             id: string;
@@ -676,6 +705,12 @@ export interface components {
             name: string;
             objectives: components["schemas"]["ObjectiveView"][];
         };
+        SseItemOfObject: {
+            data?: unknown;
+            eventType?: null | string;
+            eventId?: null | string;
+            reconnectionInterval?: null | string;
+        };
         TimeZoneRequest: {
             timeZone: string;
         };
@@ -889,6 +924,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+        };
+    };
+    Ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseItemOfObject"];
                 };
             };
         };
