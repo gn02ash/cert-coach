@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CertCoach.Api/CertCoach.Api.csproj" />
+    <Project Path="src/CertCoach.Application/CertCoach.Application.csproj" />
+    <Project Path="src/CertCoach.Domain/CertCoach.Domain.csproj" />
+    <Project Path="src/CertCoach.Infrastructure/CertCoach.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CertCoach.Api.IntegrationTests/CertCoach.Api.IntegrationTests.csproj" />
+    <Project Path="tests/CertCoach.Application.Tests/CertCoach.Application.Tests.csproj" />
+    <Project Path="tests/CertCoach.Domain.Tests/CertCoach.Domain.Tests.csproj" />
+    <Project Path="tests/CertCoach.Infrastructure.Tests/CertCoach.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

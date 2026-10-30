@@ -1,0 +1,61 @@
+# One command: docker compose up --build, then open http://localhost:8080
+# Optional settings (sign-in providers, ports, password) go in .env; see .env.example.
+name: cert-coach
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: certcoach
+      POSTGRES_USER: certcoach
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-certcoach-local}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Published on localhost only, so `dotnet run` and the tests can use it during development.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U certcoach -d certcoach"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      ConnectionStrings__CertCoach: Host=db;Database=certcoach;Username=certcoach;Password=${POSTGRES_PASSWORD:-certcoach-local}
+      Database__MigrateOnStartup: "true"
+      DataProtection__KeysPath: /keys
+      Auth__DevLogin__Enabled: ${AUTH_DEV_LOGIN:-true}
+      Auth__Microsoft__ClientId: ${MICROSOFT_CLIENT_ID:-}
+      Auth__Microsoft__ClientSecret: ${MICROSOFT_CLIENT_SECRET:-}
+      Auth__Microsoft__TenantId: ${MICROSOFT_TENANT_ID:-common}
+      Auth__Google__ClientId: ${GOOGLE_CLIENT_ID:-}
+      Auth__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - keys:/keys
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # No curl in the runtime image; bash's /dev/tcp is enough for a one-line HTTP check.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q Healthy <&3"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  keys:

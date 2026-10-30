@@ -489,3 +489,7 @@ web/dist/
 coverage/
 TestResults/
 uploads/
+*.tsbuildinfo
+e2e-screenshots/
+test-results/
+playwright-report/
