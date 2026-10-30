@@ -15,22 +15,31 @@ public sealed class UserAccountService(ICertCoachDbContext db, TimeProvider time
     /// <summary>Finds the user for this provider login, creating one on first sign-in.</summary>
     public async Task<User> SignInAsync(ExternalIdentity identity, CancellationToken ct)
     {
-        var user = await db.Users.SingleOrDefaultAsync(
-            u => u.Logins.Any(l => l.Provider == identity.Provider && l.Subject == identity.Subject), ct);
-
+        var user = await FindAsync(identity, ct);
         if (user is null)
         {
             user = User.Create(identity.Provider, identity.Subject, identity.DisplayName, identity.Email, time.GetUtcNow(), identity.FixedUserId);
             db.Users.Add(user);
-        }
-        else
-        {
-            user.RecordLogin(identity.DisplayName, identity.Email, time.GetUtcNow());
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return user;
+            }
+            catch (DbUpdateException)
+            {
+                // A first sign-in in another tab created the user a moment ago; use that one.
+                db.ChangeTracker.Clear();
+                user = await FindAsync(identity, ct) ?? throw new InvalidOperationException("Could not create or find the user.");
+            }
         }
 
+        user.RecordLogin(identity.DisplayName, identity.Email, time.GetUtcNow());
         await db.SaveChangesAsync(ct);
         return user;
     }
+
+    private Task<User?> FindAsync(ExternalIdentity identity, CancellationToken ct) =>
+        db.Users.SingleOrDefaultAsync(u => u.Logins.Any(l => l.Provider == identity.Provider && l.Subject == identity.Subject), ct);
 
     public async Task<User> SetTimeZoneAsync(Guid userId, string timeZoneId, CancellationToken ct)
     {

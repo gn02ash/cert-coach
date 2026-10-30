@@ -186,7 +186,7 @@ input:focus, select:focus, textarea:focus, .button:focus-visible { outline: 2px 
 .doc-status-pending, .doc-status-processing { background: var(--accent-soft); color: var(--accent); }
 .doc-status-ready { background: var(--success-soft); color: var(--success); }
 .doc-status-failed { background: var(--danger-soft); color: var(--danger); }
-.upload-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.upload-bar { flex-direction: row; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
 .upload-bar select, .doc select { width: auto; padding: 0.3rem 0.5rem; }
 .visually-hidden:focus-visible + .button { outline: 2px solid var(--accent); outline-offset: 1px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -195,7 +195,7 @@ input:focus, select:focus, textarea:focus, .button:focus-visible { outline: 2px 
 }
 
 /* Search */
-.search-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.search-bar { flex-direction: row; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .search-bar input { flex: 1 1 18rem; }
 .search-bar select { width: auto; }
 .hit-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
@@ -219,7 +219,7 @@ mark { background: var(--warning-soft); color: inherit; border-radius: 3px; padd
 .source.highlighted { border-color: var(--accent); }
 .source.uncited { opacity: 0.65; }
 .source-text { white-space: pre-line; overflow-wrap: anywhere; }
-.ask-form { position: sticky; bottom: 1rem; display: grid; gap: 0.5rem; }
+.ask-form { gap: 0.5rem; }
 .ask-form textarea { resize: vertical; }
 .ask-form select { width: auto; }
 code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; border-radius: 4px; }
