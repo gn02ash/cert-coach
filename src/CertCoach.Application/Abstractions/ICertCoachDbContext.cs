@@ -1,5 +1,6 @@
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Planning;
+using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace CertCoach.Application.Abstractions;
@@ -13,6 +14,8 @@ public interface ICertCoachDbContext
     DbSet<Certification> Certifications { get; }
 
     DbSet<StudyPlan> StudyPlans { get; }
+
+    DbSet<User> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

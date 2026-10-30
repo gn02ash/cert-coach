@@ -313,6 +313,53 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("study_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_at");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("time_zone_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Certifications.Certification", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_certifications_users_owner_id");
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Certifications.ExamDomain", b =>
                 {
                     b.HasOne("CertCoach.Domain.Certifications.Certification", null)
@@ -351,6 +398,13 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_study_plans_certifications_certification_id");
+
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_study_plans_users_owner_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Planning.StudySession", b =>
@@ -361,6 +415,53 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_study_sessions_study_plans_plan_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
+                {
+                    b.OwnsMany("CertCoach.Domain.Users.ExternalLogin", "Logins", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer")
+                                .HasColumnName("id");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<string>("Provider")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("provider");
+
+                            b1.Property<string>("Subject")
+                                .IsRequired()
+                                .HasMaxLength(256)
+                                .HasColumnType("character varying(256)")
+                                .HasColumnName("subject");
+
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("user_id");
+
+                            b1.HasKey("Id")
+                                .HasName("pk_user_logins");
+
+                            b1.HasIndex("UserId")
+                                .HasDatabaseName("ix_user_logins_user_id");
+
+                            b1.HasIndex("Provider", "Subject")
+                                .IsUnique()
+                                .HasDatabaseName("ix_user_logins_provider_subject");
+
+                            b1.ToTable("user_logins", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId")
+                                .HasConstraintName("fk_user_logins_users_user_id");
+                        });
+
+                    b.Navigation("Logins");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Certifications.Certification", b =>
