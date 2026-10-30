@@ -4,6 +4,8 @@
 
 A personal certification study assistant. Paste an exam's official skills outline, set your exam date and weekly hours, and get a plan of short daily sessions weighted by how much each domain counts on the exam. Miss a day and the plan reschedules itself; run out of time and it tells you exactly how many hours, or how many extra days, you need.
 
+Upload your study PDFs and ask questions about them. Answers come only from your documents, with a citation to the page for every claim, and when your documents don't cover a question it says so instead of guessing.
+
 ![Today's session, progress and domain coverage](docs/screenshots/4-dashboard.png)
 
 <details>
@@ -21,7 +23,7 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 
 ## Features
 
-**Phase 1: study plan** (this release)
+**Phase 1: study plan**
 
 - **Outline import.** Paste a Microsoft Learn study guide (or any outline with weighted domains). A parser turns it into domains, skill areas and objectives that you can edit before saving.
 - **Weighted daily plan.** 30–45 minute sessions on the days you choose. Every objective gets at least one session; extra time goes to heavier domains; domains are interleaved, and a review buffer plus mock exams sit before the exam.
@@ -30,9 +32,18 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Retired exams flagged.** Certifications carry a status (Active, Beta, Retired, Replaced by X).
 - **Sign-in** with Microsoft Entra ID or Google, or a one-click local login.
 
+**Phase 2: your documents** (this release)
+
+- **Library.** Upload PDFs (optionally for one certification). They are processed in the background: text extracted with headings detected from font size, split into passages that follow the document's structure, and embedded.
+- **Search.** Hybrid search: meaning (pgvector) and keywords (PostgreSQL full-text) merged with reciprocal rank fusion. Each session on the dashboard has **Find in my materials**.
+- **Ask.** Streamed answers grounded in your passages, with a citation chip per claim that opens the PDF at the cited page. Questions your documents don't cover are declined without calling a model.
+- **Any provider.** Claude (default `claude-opus-5-5`), Azure OpenAI or any OpenAI-compatible server for answers; Azure OpenAI or OpenAI-compatible embeddings. With no keys, an offline mode keeps everything working: word-matching search and quoted answers.
+- **Parse with AI.** Outlines in layouts the parser can't read, such as tables copied from a PDF, can be parsed by the chat model into the same editable draft.
+- **Retrieval evaluation.** A synthetic test set and tool that score recall@k, MRR and the "not in your materials" gate. CI fails if retrieval quality drops. See [`eval/`](eval/README.md).
+
 **Roadmap**
 
-- [ ] Phase 2: upload your PDFs and notes, RAG chat over them with page citations, and a retrieval evaluation set
+- [x] Phase 2: upload your PDFs, RAG answers with page citations, and a retrieval evaluation set
 - [ ] Phase 3: generated practice questions and flashcards, SM-2 spaced repetition, readiness score per domain
 - [ ] Phase 4: certification recommendations from your CV
 - [ ] Phase 5: Microsoft Learn and YouTube resources per objective, and an MCP server (`get_today_session`, `quiz_me`, …)
@@ -45,9 +56,20 @@ You need [Docker](https://docs.docker.com/get-docker/). Then:
 docker compose up --build
 ```
 
-Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline**.
+Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline**. To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**.
 
-Everything works without configuration. To change ports, the database password or sign-in providers, copy [`.env.example`](.env.example) to `.env`.
+Everything works without configuration, in offline mode. For AI answers and semantic search, copy [`.env.example`](.env.example) to `.env` and set the `AI_*` variables, for example:
+
+```bash
+AI_CHAT_PROVIDER=Anthropic
+AI_CHAT_API_KEY=<your Anthropic key>
+AI_EMBEDDINGS_PROVIDER=AzureOpenAI
+AI_EMBEDDINGS_ENDPOINT=https://<resource>.openai.azure.com
+AI_EMBEDDINGS_MODEL=text-embedding-3-small
+AI_EMBEDDINGS_API_KEY=<your Azure OpenAI key>
+```
+
+The same file sets ports, the database password and sign-in providers. Existing documents are re-embedded automatically when the embedding model changes.
 
 ## Architecture
 
@@ -60,11 +82,13 @@ flowchart LR
         db[("db<br/>PostgreSQL 17 + pgvector")]
     end
     idp["Microsoft Entra ID<br/>Google"]
+    llm["Claude · Azure OpenAI<br/>OpenAI-compatible"]
 
     browser -- "same origin, session cookie" --> web
     web -- "/api, /auth, /signin-*" --> api
-    api -- "EF Core" --> db
+    api -- "EF Core, SQL" --> db
     api -. "OpenID Connect / OAuth" .-> idp
+    api -. "chat, embeddings (optional)" .-> llm
 ```
 
 The backend follows a layered, clean architecture. Dependencies point inward, and the scheduling rules live in a domain layer with no I/O at all:
@@ -72,9 +96,9 @@ The backend follows a layered, clean architecture. Dependencies point inward, an
 ```mermaid
 flowchart TB
     Api["<b>Api</b><br/>minimal API endpoints, auth (BFF), problem details"]
-    Infrastructure["<b>Infrastructure</b><br/>EF Core + Npgsql, migrations"]
-    Application["<b>Application</b><br/>use-case services, outline parser, ports"]
-    Domain["<b>Domain</b><br/>Certification outline, StudyPlan, PlanScheduler"]
+    Infrastructure["<b>Infrastructure</b><br/>EF Core + Npgsql + pgvector, ingestion worker,<br/>PdfPig, AI providers, file storage"]
+    Application["<b>Application</b><br/>use-case services, outline parsers, chunker,<br/>hybrid search, grounded answers, ports"]
+    Domain["<b>Domain</b><br/>Certification outline, StudyPlan, PlanScheduler, Document"]
 
     Api --> Application
     Api --> Infrastructure
@@ -84,19 +108,22 @@ flowchart TB
 
 ```text
 src/
-  CertCoach.Domain/          entities and pure logic: outline, StudyPlan aggregate, PlanScheduler, SessionCadence
-  CertCoach.Application/     services (certifications, plans, dashboard, users), outline parser, ICertCoachDbContext
-  CertCoach.Infrastructure/  DbContext, entity mappings, migrations
-  CertCoach.Api/             endpoints, sign-in, error handling; emits openapi.json at build time
+  CertCoach.Domain/          entities and pure logic: outline, StudyPlan aggregate, PlanScheduler, Document
+  CertCoach.Application/     services, outline parsers, chunker, hybrid search + RRF, Ask, ports
+  CertCoach.Infrastructure/  DbContext, mappings, migrations, PDF extraction, ingestion worker, AI providers
+  CertCoach.Api/             endpoints (incl. server-sent events), sign-in, errors; emits openapi.json at build time
 tests/
-  CertCoach.Domain.Tests/          scheduler and rescheduling (unit)
-  CertCoach.Application.Tests/     outline parser (unit)
-  CertCoach.Infrastructure.Tests/  mappings and migrations against real PostgreSQL (Testcontainers)
-  CertCoach.Api.IntegrationTests/  the HTTP API end to end against real PostgreSQL (Testcontainers)
+  CertCoach.Domain.Tests/          scheduler, rescheduling, document lifecycle (unit)
+  CertCoach.Application.Tests/     outline parsers, chunker, rank fusion, prompts and citations (unit)
+  CertCoach.Infrastructure.Tests/  PDF extraction, AI setup; mappings and migrations against real PostgreSQL
+  CertCoach.Api.IntegrationTests/  the HTTP API end to end against real PostgreSQL, ingestion worker included
+tools/
+  CertCoach.Eval/            retrieval evaluation (recall@k, MRR, decline gate) over eval/
 web/                         React app; TypeScript types generated from the API's OpenAPI document
   e2e/                       Playwright test that drives the Docker Compose stack in CI
 docker/                      Dockerfiles and nginx config
-samples/                     synthetic sample outline (not a real exam)
+samples/                     synthetic sample outline and PDF (not a real exam)
+eval/                        synthetic corpus and labelled questions for the retrieval evaluation
 ```
 
 ## How the plan is built
@@ -108,6 +135,31 @@ samples/                     synthetic sample outline (not a real exam)
 5. **Rescheduling.** Missed Learn content moves to the front of the queue; everything planned from today on is laid out again. Completed history is never rewritten.
 
 The scheduler is a pure, deterministic function: the same inputs always give the same plan, which makes it straightforward to test (see `PlanSchedulerGenerateTests` and `StudyPlanTests`).
+
+## How questions are answered
+
+```mermaid
+flowchart LR
+    upload["Upload PDF"] --> queue[("documents<br/>= queue")]
+    queue --> worker["Ingestion worker"]
+    worker --> extract["PdfPig: text, pages,<br/>headings by font size"]
+    extract --> chunk["Chunker: ~450 tokens,<br/>section-aware, overlap"]
+    chunk --> embed["Embeddings<br/>title + section + text"]
+    embed --> chunks[("chunks<br/>vector(1536) HNSW<br/>tsvector GIN")]
+
+    question["Question"] --> hybrid["Vector + full-text search<br/>merged by RRF"]
+    chunks --> hybrid
+    hybrid --> gate{"best similarity<br/>≥ threshold?"}
+    gate -- no --> declined["Not in your materials<br/>(no model call)"]
+    gate -- yes --> model["Model: numbered sources,<br/>cite [n] per claim"]
+    model --> check["Drop citations to<br/>unknown sources"]
+    check --> answer["Streamed answer<br/>with page citations"]
+```
+
+1. **Ingestion.** An upload is stored and queued. The worker claims it with `FOR UPDATE SKIP LOCKED`, extracts the text layer, drops running headers and page numbers, and treats lines set larger than the body text as headings.
+2. **Chunking.** About 450 tokens per chunk (cl100k). A top-level heading always starts a new chunk, smaller headings do once a chunk is half full, and the last sentences repeat at the start of the next chunk. Each chunk keeps its page range and section path.
+3. **Retrieval.** The question is embedded and searched two ways in one database: cosine distance on an HNSW index, and full-text search that matches any of the question's words. Reciprocal rank fusion merges the two rankings by rank alone, so their scores never need a common scale.
+4. **Answering.** If even the best passage is not similar enough, the answer is "not in your materials" and no model is called. Otherwise the model gets a fixed system prompt (cacheable) and the passages as numbered `<source>` blocks it is told to treat as data. The answer streams as server-sent events. Citations to numbers that don't exist are dropped, and every cited source links to the PDF page.
 
 ## Design decisions
 
@@ -123,8 +175,10 @@ The scheduler is a pure, deterministic function: the same inputs always give the
 | **"Today" uses the learner's time zone** | Kept in sync from the browser, so a session doesn't flip days at midnight UTC. |
 | **Generated API types** | The API writes `openapi.json` at build time and the web app generates TypeScript types from it. CI fails if either is stale. |
 | **Real PostgreSQL in tests** | Testcontainers runs the real migrations against `pgvector/pgvector:pg17`, so tests check SQL behavior, not an in-memory approximation. |
-| **pgvector from the first migration** | Phase 2 embeddings need no schema-level extension change. |
-| **Deterministic outline parser before any LLM** | Works offline with no keys. The result is a draft you review. LLM-assisted parsing comes with the LLM provider abstraction in Phase 2. |
+| **pgvector from the first migration** | The Phase 2 chunk tables needed no extension change, and vectors live next to the rest of the data in one backup. |
+| **Deterministic outline parser first, AI parsing as an option** | The parser works offline with no keys. "Parse with AI" appears only when a chat provider is configured, and its draft passes the same checks and lands in the same editor for review. |
+| **Decline before calling a model** | When the best passage isn't similar enough to the question, Ask answers "not in your materials" itself. That saves a call, and it removes the main source of made-up answers. |
+| **Measured, not guessed** | The retrieval evaluation in CI caught that offline embeddings counted stop words, which made the decline gate useless. Removing them took declines from 1 of 6 to 3 of 6. |
 | **`Microsoft.Extensions.AI` as the provider abstraction** | `IChatClient` and `IEmbeddingGenerator` are the standard .NET interfaces, and Anthropic and OpenAI ship adapters for them, so there is no hand-written provider layer to maintain. |
 | **One OpenAI SDK for Azure and OpenAI-compatible servers** | Azure OpenAI's v1 API speaks the OpenAI protocol, so Azure, OpenAI, Ollama and LM Studio share one code path. |
 | **Offline mode by default** | Embeddings fall back to a word-hashing model and answers to quoted passages, so the app, CI and the e2e test run without any API key. |
@@ -202,6 +256,12 @@ Run the web unit and component tests:
 cd web && npm test
 ```
 
+Run the retrieval evaluation (starts its own database container; see [`eval/README.md`](eval/README.md)):
+
+```bash
+dotnet run --project tools/CertCoach.Eval
+```
+
 Run the browser end-to-end test against `docker compose up`:
 
 ```bash
@@ -214,7 +274,7 @@ After changing an endpoint, `dotnet build` refreshes `web/src/api/openapi.json`.
 cd web && npm run gen:api
 ```
 
-CI runs the backend tests, the web checks, and the end-to-end test against the real Docker Compose stack on every pull request.
+CI runs the backend tests, the web checks, the retrieval evaluation (failing below its quality floor), and the end-to-end test against the real Docker Compose stack on every pull request.
 
 ## License
 
