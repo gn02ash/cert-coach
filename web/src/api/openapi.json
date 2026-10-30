@@ -1,0 +1,1549 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "CertCoach.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/auth/providers": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "ListAuthProviders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuthProvider"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login/{provider}": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Login",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "GetMe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me/time-zone": {
+      "put": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "SetTimeZone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeZoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outlines/parse": {
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "summary": "Parse a pasted skills outline into an editable draft.",
+        "operationId": "ParseOutline",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseOutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "operationId": "GetDashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/certifications": {
+      "get": {
+        "tags": [
+          "Certifications"
+        ],
+        "operationId": "ListCertifications",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CertificationSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "operationId": "CreateCertification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCertificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationDetail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/certifications/{id}": {
+      "get": {
+        "tags": [
+          "Certifications"
+        ],
+        "operationId": "GetCertification",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Certifications"
+        ],
+        "operationId": "UpdateCertification",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCertificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificationDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Certifications"
+        ],
+        "operationId": "DeleteCertification",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/plans/preview": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Generate a plan without saving it.",
+        "operationId": "PreviewPlan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanPreview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "CreatePlan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "ListPlans",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "GetPlan",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "DeletePlan",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}/sessions/{sessionId}/complete": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "CompleteSession",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}/sessions/{sessionId}/miss": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Mark a session missed and reschedule the rest of the plan.",
+        "operationId": "MissSession",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}/reschedule-overdue": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Treat planned sessions from past days as missed and reschedule them.",
+        "operationId": "RescheduleOverdue",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}/archive": {
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "operationId": "ArchivePlan",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthProvider": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CapacityShortfall": {
+        "required": [
+          "missingSessions",
+          "suggestedHoursPerWeek",
+          "suggestedExamDate"
+        ],
+        "type": "object",
+        "properties": {
+          "missingSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "suggestedHoursPerWeek": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggestedExamDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "CertificationDetail": {
+        "required": [
+          "id",
+          "examCode",
+          "name",
+          "vendor",
+          "status",
+          "replacedByExamCode",
+          "outlineUrl",
+          "outlineVersionDate",
+          "activePlanId",
+          "domains"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CertificationStatus"
+          },
+          "replacedByExamCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outlineUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
+          },
+          "outlineVersionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "activePlanId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainView"
+            }
+          }
+        }
+      },
+      "CertificationStatus": {
+        "enum": [
+          "Active",
+          "Beta",
+          "Retired",
+          "Replaced"
+        ]
+      },
+      "CertificationSummary": {
+        "required": [
+          "id",
+          "examCode",
+          "name",
+          "vendor",
+          "status",
+          "replacedByExamCode",
+          "domainCount",
+          "objectiveCount",
+          "activePlanId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CertificationStatus"
+          },
+          "replacedByExamCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "domainCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectiveCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activePlanId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "DashboardView": {
+        "required": [
+          "today",
+          "plans"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "plans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanDashboard"
+            }
+          }
+        }
+      },
+      "DayOfWeek": {
+        "enum": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      "DomainDraft": {
+        "required": [
+          "name",
+          "weightMinPercent",
+          "weightMaxPercent",
+          "skillAreas"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "weightMinPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightMaxPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillAreas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillAreaDraft"
+            }
+          }
+        }
+      },
+      "DomainProgress": {
+        "required": [
+          "domainId",
+          "name",
+          "weight",
+          "objectivesStudied",
+          "objectivesTotal"
+        ],
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          },
+          "objectivesStudied": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesTotal": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DomainView": {
+        "required": [
+          "id",
+          "name",
+          "weightMinPercent",
+          "weightMaxPercent",
+          "skillAreas"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weightMinPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightMaxPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillAreas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillAreaView"
+            }
+          }
+        }
+      },
+      "ObjectiveView": {
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "OutlineDraft": {
+        "required": [
+          "domains",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainDraft"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "objectiveCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ParseOutlineRequest": {
+        "required": [
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanDashboard": {
+        "required": [
+          "planId",
+          "certificationId",
+          "examCode",
+          "certificationName",
+          "examDate",
+          "daysUntilExam",
+          "today",
+          "upcoming",
+          "progress",
+          "domains",
+          "overdueSessions",
+          "shortfall"
+        ],
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "certificationName": {
+            "type": "string"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysUntilExam": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "today": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          },
+          "upcoming": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          },
+          "progress": {
+            "$ref": "#/components/schemas/PlanProgress"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainProgress"
+            }
+          },
+          "overdueSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shortfall": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CapacityShortfall"
+              }
+            ]
+          }
+        }
+      },
+      "PlanPreview": {
+        "required": [
+          "sessionMinutes",
+          "sessionsPerWeek",
+          "sessions",
+          "warnings",
+          "shortfall"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionsPerWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanWarning"
+            }
+          },
+          "shortfall": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CapacityShortfall"
+              }
+            ]
+          }
+        }
+      },
+      "PlanProgress": {
+        "required": [
+          "completed",
+          "missed",
+          "remaining",
+          "total",
+          "percentComplete"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "missed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percentComplete": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PlanRequest": {
+        "required": [
+          "certificationId",
+          "startDate",
+          "examDate",
+          "hoursPerWeek",
+          "studyDays",
+          "reviewBufferPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "hoursPerWeek": {
+            "type": "number",
+            "format": "double"
+          },
+          "studyDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayOfWeek"
+            }
+          },
+          "reviewBufferPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PlanStatus": {
+        "enum": [
+          "Active",
+          "Archived"
+        ]
+      },
+      "PlanSummary": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "certificationName",
+          "examDate",
+          "status",
+          "completedSessions",
+          "totalSessions"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "certificationName": {
+            "type": "string"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlanStatus"
+          },
+          "completedSessions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalSessions": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PlanView": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "certificationName",
+          "startDate",
+          "examDate",
+          "hoursPerWeek",
+          "studyDays",
+          "reviewBufferPercent",
+          "status",
+          "shortfall",
+          "sessions",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "certificationName": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "examDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "hoursPerWeek": {
+            "type": "number",
+            "format": "double"
+          },
+          "studyDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayOfWeek"
+            }
+          },
+          "reviewBufferPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlanStatus"
+          },
+          "shortfall": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CapacityShortfall"
+              }
+            ]
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanWarning"
+            }
+          }
+        }
+      },
+      "PlanWarning": {
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/PlanWarningCode"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanWarningCode": {
+        "enum": [
+          "ObjectivesPacked",
+          "HoursCapped",
+          "NoStudySlots"
+        ]
+      },
+      "SaveCertificationRequest": {
+        "required": [
+          "examCode",
+          "name",
+          "vendor",
+          "outlineUrl",
+          "outlineVersionDate",
+          "status",
+          "replacedByExamCode",
+          "outline"
+        ],
+        "type": "object",
+        "properties": {
+          "examCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "outlineUrl": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uri"
+          },
+          "outlineVersionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CertificationStatus"
+          },
+          "replacedByExamCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainDraft"
+            }
+          }
+        }
+      },
+      "SessionKind": {
+        "enum": [
+          "Learn",
+          "Review",
+          "MockExam"
+        ]
+      },
+      "SessionObjectiveView": {
+        "required": [
+          "id",
+          "text",
+          "skillArea",
+          "domainId",
+          "domain"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          },
+          "skillArea": {
+            "type": "string"
+          },
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domain": {
+            "type": "string"
+          }
+        }
+      },
+      "SessionStatus": {
+        "enum": [
+          "Planned",
+          "Completed",
+          "Missed"
+        ]
+      },
+      "SessionView": {
+        "required": [
+          "id",
+          "sequence",
+          "date",
+          "durationMinutes",
+          "kind",
+          "status",
+          "title",
+          "domainId",
+          "domainName",
+          "objectives",
+          "completedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SessionKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionStatus"
+          },
+          "title": {
+            "type": "string"
+          },
+          "domainId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "domainName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "objectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionObjectiveView"
+            }
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "SkillAreaDraft": {
+        "required": [
+          "name",
+          "objectives"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "objectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SkillAreaView": {
+        "required": [
+          "id",
+          "name",
+          "objectives"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "objectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectiveView"
+            }
+          }
+        }
+      },
+      "TimeZoneRequest": {
+        "required": [
+          "timeZone"
+        ],
+        "type": "object",
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          }
+        }
+      },
+      "UserProfile": {
+        "required": [
+          "id",
+          "displayName",
+          "email",
+          "timeZone"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Certifications"
+    },
+    {
+      "name": "Dashboard"
+    },
+    {
+      "name": "Plans"
+    }
+  ]
+}

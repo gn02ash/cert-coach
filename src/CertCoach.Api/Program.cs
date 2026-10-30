@@ -13,7 +13,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+
+    // Numbers are numbers: no quoted "5" accepted, which also keeps the OpenAPI types exact.
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);

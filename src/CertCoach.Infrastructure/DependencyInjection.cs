@@ -12,11 +12,12 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString(ConnectionStringName)
+        // Resolved when a context is first created, so tooling such as build-time OpenAPI
+        // generation can start the host without a database.
+        services.AddDbContext<CertCoachDbContext>(options => options.UseCertCoachDatabase(
+            configuration.GetConnectionString(ConnectionStringName)
             ?? throw new InvalidOperationException(
-                $"Connection string '{ConnectionStringName}' is missing. Set ConnectionStrings__{ConnectionStringName}.");
-
-        services.AddDbContext<CertCoachDbContext>(options => options.UseCertCoachDatabase(connectionString));
+                $"Connection string '{ConnectionStringName}' is missing. Set ConnectionStrings__{ConnectionStringName}.")));
         services.AddScoped<ICertCoachDbContext>(sp => sp.GetRequiredService<CertCoachDbContext>());
         services.AddHealthChecks().AddDbContextCheck<CertCoachDbContext>("database");
 
