@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="PdfPig" />
+    <PackageReference Include="Pgvector.EntityFrameworkCore" />
   </ItemGroup>
 
   <ItemGroup>

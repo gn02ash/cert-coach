@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\CertCoach.Infrastructure.Tests\Documents\TestPdf.cs" Link="TestPdf.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\samples\*.md" LinkBase="samples" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -28,6 +28,7 @@ services:
       ConnectionStrings__CertCoach: Host=db;Database=certcoach;Username=certcoach;Password=${POSTGRES_PASSWORD:-certcoach-local}
       Database__MigrateOnStartup: "true"
       DataProtection__KeysPath: /keys
+      Storage__Path: /data/uploads
       Auth__DevLogin__Enabled: ${AUTH_DEV_LOGIN:-true}
       Auth__Microsoft__ClientId: ${MICROSOFT_CLIENT_ID:-}
       Auth__Microsoft__ClientSecret: ${MICROSOFT_CLIENT_SECRET:-}
@@ -44,6 +45,7 @@ services:
       Ai__Embeddings__Endpoint: ${AI_EMBEDDINGS_ENDPOINT:-}
     volumes:
       - keys:/keys
+      - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -67,3 +69,4 @@ services:
 volumes:
   db-data:
   keys:
+  uploads:

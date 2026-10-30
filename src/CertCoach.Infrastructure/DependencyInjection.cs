@@ -1,8 +1,10 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
+using CertCoach.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,15 @@ public static class DependencyInjection
         services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddSingleton<ITokenCounter, TiktokenTokenCounter>();
 
+        // Relative paths resolve against the working directory: the project folder under `dotnet run`, /app in Docker.
+        services.AddSingleton<IFileStore>(new LocalFileStore(Path.GetFullPath(configuration["Storage:Path"] ?? "uploads")));
+        services.AddSingleton<IngestionSignal>();
+        services.AddSingleton<IIngestionSignal>(sp => sp.GetRequiredService<IngestionSignal>());
+        if (configuration.GetValue("Ingestion:Enabled", defaultValue: true))
+        {
+            services.AddHostedService<IngestionWorker>();
+        }
+
         return services;
     }
 
@@ -44,6 +55,7 @@ public static class DependencyInjection
             .UseNpgsql(connectionString, npgsql => npgsql
                 .MigrationsHistoryTable("__ef_migrations_history")
                 // Outlines are three collections deep; split queries avoid a cartesian explosion.
-                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
+                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                .UseVector())
             .UseSnakeCaseNamingConvention();
 }

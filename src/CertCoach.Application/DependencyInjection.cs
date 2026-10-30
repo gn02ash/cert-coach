@@ -1,6 +1,8 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Dashboard;
+using CertCoach.Application.Documents;
+using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Application.Plans;
 using CertCoach.Application.Users;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,8 @@ public static class DependencyInjection
         services.AddScoped<PlanService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<UserAccountService>();
+        services.AddScoped<DocumentService>();
+        services.AddScoped<DocumentIngestionService>();
         return services;
     }
 }
