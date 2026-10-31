@@ -12,6 +12,8 @@ import {
   type CreatePracticeItemRequest,
   type PracticeItemStatus,
   type PracticeItemView,
+  type GenerateItemsRequest,
+  type GenerationJobView,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -31,6 +33,7 @@ export const keys = {
   plan: (id: string) => ["plans", id] as const,
   documents: ["documents"] as const,
   practiceItems: (certificationId: string) => ["practice-items", certificationId] as const,
+  generations: (certificationId: string) => ["generations", certificationId] as const,
   aiStatus: ["ai-status"] as const,
   search: (query: string, certificationId?: string) => ["search", query, certificationId ?? ""] as const,
 };
@@ -212,5 +215,37 @@ export function useDeletePracticeItem(certificationId: string) {
   return useMutation({
     mutationFn: (id: string) => api<void>(`/api/practice/items/${id}`, "DELETE"),
     onSuccess: () => client.invalidateQueries({ queryKey: keys.practiceItems(certificationId) }),
+  });
+}
+
+const isActive = (run: GenerationJobView) => run.status === "Queued" || run.status === "Running";
+
+/** Recent generation runs, polled while one is in progress so its new items show up as they are written. */
+export function useGenerations(certificationId: string) {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: keys.generations(certificationId),
+    queryFn: async () => {
+      const runs = await api<GenerationJobView[]>(`/api/practice/generations?certificationId=${certificationId}`);
+      if (runs.some(isActive) || runs[0]?.finishedAt) void client.invalidateQueries({ queryKey: keys.practiceItems(certificationId) });
+      return runs;
+    },
+    refetchInterval: (query) => (query.state.data?.some(isActive) ? 2000 : false),
+  });
+}
+
+export function useStartGeneration() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: GenerateItemsRequest) => api<GenerationJobView>("/api/practice/generations", "POST", request),
+    onSuccess: (run) => client.invalidateQueries({ queryKey: keys.generations(run.certificationId) }),
+  });
+}
+
+export function useCancelGeneration() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<GenerationJobView>(`/api/practice/generations/${id}/cancel`, "POST"),
+    onSuccess: (run) => client.invalidateQueries({ queryKey: keys.generations(run.certificationId) }),
   });
 }

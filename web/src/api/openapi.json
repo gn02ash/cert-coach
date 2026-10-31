@@ -1133,6 +1133,134 @@
           }
         }
       }
+    },
+    "/api/practice/generations": {
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Write questions and flashcards in the background for a certification, a domain or an objective.",
+        "description": "With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.",
+        "operationId": "StartGeneration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "The most recent generation runs for a certification, newest first.",
+        "operationId": "ListGenerations",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenerationJobView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/generations/{id}": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "GetGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/generations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Stop a run before its next objective. Items already written are kept.",
+        "operationId": "CancelGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1642,6 +1770,121 @@
             }
           }
         }
+      },
+      "GenerateItemsRequest": {
+        "required": [
+          "certificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domainId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "perObjective": {
+            "type": "integer",
+            "format": "int32",
+            "default": 5
+          }
+        }
+      },
+      "GenerationJobView": {
+        "required": [
+          "id",
+          "certificationId",
+          "status",
+          "objectives",
+          "objectivesDone",
+          "perObjective",
+          "itemsCreated",
+          "itemsRejected",
+          "objectivesWithoutMaterial",
+          "usesAi",
+          "error",
+          "createdAt",
+          "finishedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GenerationStatus"
+          },
+          "objectives": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesDone": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "perObjective": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemsCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemsRejected": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesWithoutMaterial": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usesAi": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "GenerationStatus": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Completed",
+          "Failed",
+          "Cancelled"
+        ]
       },
       "IFormFile": {
         "type": "string",

@@ -53,3 +53,27 @@ internal sealed class PracticeItemConfiguration : IEntityTypeConfiguration<Pract
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
+
+internal sealed class GenerationJobConfiguration : IEntityTypeConfiguration<GenerationJob>
+{
+    public void Configure(EntityTypeBuilder<GenerationJob> builder)
+    {
+        builder.ToTable("generation_jobs");
+        builder.HasKey(j => j.Id);
+        builder.Property(j => j.Id).ValueGeneratedNever();
+        builder.Property(j => j.Status).HasConversion<string>().HasMaxLength(16);
+        builder.Property(j => j.Error).HasMaxLength(500);
+        builder.PrimitiveCollection(j => j.ObjectiveIds).HasField("_objectiveIds").UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Ignore(j => j.IsActive);
+        builder.Ignore(j => j.NextObjective);
+
+        // The worker's claim query, and the "one run at a time per certification" check.
+        builder.HasIndex(j => new { j.Status, j.CreatedAt });
+        builder.HasIndex(j => new { j.CertificationId, j.Status });
+
+        builder.HasOne<Certification>()
+            .WithMany()
+            .HasForeignKey(j => j.CertificationId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

@@ -1,4 +1,5 @@
 using CertCoach.Application.Practice;
+using CertCoach.Application.Practice.Generation;
 
 namespace CertCoach.Api.Endpoints;
 
@@ -37,6 +38,28 @@ internal static class PracticeEndpoints
                 return TypedResults.NoContent();
             })
             .WithName("DeletePracticeItem");
+
+        var runs = api.MapGroup("/practice/generations").WithTags("Practice");
+
+        runs.MapPost("/", async (GenerateItemsRequest request, GenerationService service, CancellationToken ct) =>
+            {
+                var run = await service.StartAsync(request, ct);
+                return TypedResults.Accepted($"/api/practice/generations/{run.Id}", run);
+            })
+            .WithName("StartGeneration")
+            .WithSummary("Write questions and flashcards in the background for a certification, a domain or an objective.")
+            .WithDescription("With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.");
+
+        runs.MapGet("/", (Guid certificationId, GenerationService service, CancellationToken ct) => service.ListAsync(certificationId, ct))
+            .WithName("ListGenerations")
+            .WithSummary("The most recent generation runs for a certification, newest first.");
+
+        runs.MapGet("/{id:guid}", (Guid id, GenerationService service, CancellationToken ct) => service.GetAsync(id, ct))
+            .WithName("GetGeneration");
+
+        runs.MapPost("/{id:guid}/cancel", (Guid id, GenerationService service, CancellationToken ct) => service.CancelAsync(id, ct))
+            .WithName("CancelGeneration")
+            .WithSummary("Stop a run before its next objective. Items already written are kept.");
 
         return api;
     }

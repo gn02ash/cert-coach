@@ -2,10 +2,12 @@ using CertCoach.Application.Abstractions;
 using CertCoach.Application.Certifications.Outlines.Import;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
+using CertCoach.Application.Practice.Generation;
 using CertCoach.Application.Search;
 using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
+using CertCoach.Infrastructure.Practice;
 using CertCoach.Infrastructure.Search;
 using CertCoach.Infrastructure.Storage;
 using CertCoach.Infrastructure.Web;
@@ -46,6 +48,13 @@ public static class DependencyInjection
         if (configuration.GetValue("Ingestion:Enabled", defaultValue: true))
         {
             services.AddHostedService<IngestionWorker>();
+        }
+
+        services.AddSingleton<GenerationSignal>();
+        services.AddSingleton<IGenerationSignal>(sp => sp.GetRequiredService<GenerationSignal>());
+        if (configuration.GetValue("Generation:Enabled", defaultValue: true))
+        {
+            services.AddHostedService<GenerationWorker>();
         }
 
         return services;
