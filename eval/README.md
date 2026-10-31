@@ -30,6 +30,7 @@ Other options:
 | `--connection "<postgres>"` | Use an existing database instead of a container. A new user is created, so existing data is left alone. |
 | `--chunk-tokens <n>` | Try another chunk size. |
 | `--min-recall5 <0..1>`, `--min-mrr <0..1>` | Exit with an error when hybrid search scores below these, for CI. |
+| `--min-grounded <0..1>` | Exit with an error when fewer generated items than this are grounded (CI uses 1). |
 | `--export <dir>` | Write the corpus as PDFs, for example to upload them and try Search and Ask. |
 | `--dry-run` | Only typeset, extract and chunk the corpus, list the chunks, and check that every evidence phrase lands inside one chunk. No database. |
 
@@ -38,6 +39,8 @@ Other options:
 - **Recall@k:** the share of answerable questions whose evidence is in one of the top *k* passages.
 - **MRR@10:** the mean of 1 / rank of the first correct passage (0 when it's not in the top 10). It rewards putting the answer first, which matters because Ask cites the top passages.
 - **Gate:** for each question, the best cosine similarity among the passages Ask would use. Ask declines below its threshold (0.30 with real embeddings, 0.10 offline). The report shows how many answerable questions pass and unanswerable ones are declined, plus the threshold that would have separated this set best. Treat that number as a hint; on a set this small it will overfit.
+
+- **Generated items:** practice items are written offline for each objective of the [DEMO-101 sample outline](../samples/DEMO-101-outline.md) from the corpus, as a generation run does without a chat model. An item counts as grounded when its prompt is the quoted sentence with the answer blanked out and that sentence is in the passage it cites. The report shows how many objectives the corpus covers and the share of items that are grounded.
 
 CI runs the evaluation offline on every pull request and posts the report on the run summary. Offline embeddings measure shared words, not meaning, so expect paraphrased questions to rank lower there than with a real embedding model.
 

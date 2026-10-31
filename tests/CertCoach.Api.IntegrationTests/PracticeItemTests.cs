@@ -93,6 +93,24 @@ public class PracticeItemTests(CertCoachApiFactory factory)
         items.Single(i => i.Prompt == "Chunk documents").ObjectiveId.ShouldBeNull();
     }
 
+    [Fact]
+    public async Task Deleting_a_certification_takes_its_items_answers_and_runs_with_it()
+    {
+        var client = await factory.CreateUserClientAsync();
+        var certification = await SendAsync<CertificationDetail>(client, HttpMethod.Post, "/api/certifications", Certification("Merge rankings"));
+        var objective = certification.Domains[0].SkillAreas[0].Objectives[0].Id;
+        var item = await SendAsync<PracticeItemView>(client, HttpMethod.Post, "/api/practice/items", new CreatePracticeItemRequest(
+            certification.Id, objective, PracticeItemKind.SingleChoice, "Which?", ["A", "B", "C"], [0], ""));
+        await SendAsync<AnswerResult>(client, HttpMethod.Post, $"/api/review/items/{item.Id}/answer", new AnswerRequest([0], null));
+        await SendAsync<CertCoach.Application.Practice.Generation.GenerationJobView>(
+            client, HttpMethod.Post, "/api/practice/generations", new CertCoach.Application.Practice.Generation.GenerateItemsRequest(certification.Id));
+
+        (await client.DeleteAsync($"/api/certifications/{certification.Id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        (await client.GetAsync($"/api/practice/items?certificationId={certification.Id}", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await client.GetAsync($"/api/review", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
     private static async Task<List<PracticeItemView>> ListAsync(HttpClient client, Guid certificationId, Guid? objectiveId = null) =>
         (await client.GetFromJsonAsync<List<PracticeItemView>>(
             $"/api/practice/items?certificationId={certificationId}" + (objectiveId is null ? "" : $"&objectiveId={objectiveId}"), Json, Ct))
