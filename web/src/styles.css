@@ -268,3 +268,4 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .exam-score .muted { font-size: 1rem; font-weight: 400; }
 .exam-result-summary { display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
 .stack-tight { display: grid; gap: 0.3rem; }
+.small-big { font-size: 1.5rem; }

@@ -1,6 +1,7 @@
 using CertCoach.Application.Practice;
 using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
+using CertCoach.Application.Practice.Readiness;
 
 namespace CertCoach.Api.Endpoints;
 
@@ -54,6 +55,13 @@ internal static class PracticeEndpoints
                 service.AnswerAsync(id, request, ct))
             .WithName("AnswerItem")
             .WithSummary("Answer a question or grade a flashcard. Returns the answer and when the item comes back.");
+
+        api.MapGet("/readiness/{certificationId:guid}", (Guid certificationId, ReadinessService service, CancellationToken ct) =>
+                service.GetAsync(certificationId, ct))
+            .WithName("GetReadiness")
+            .WithTags("Review")
+            .WithSummary("An estimate of readiness per exam domain: objectives recalled × recent accuracy, from your practice answers.")
+            .WithDescription("A domain needs 10 question answers in the last 90 days for a score. Answers lose half their weight every 14 days, and accuracy is shrunk toward 50% so a few answers can't read as certain.");
 
         var exams = api.MapGroup("/mock-exams").WithTags("Mock exams");
 

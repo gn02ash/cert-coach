@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router";
 import { useArchivePlan, usePlan, useSessionAction } from "../api/hooks";
 import { Alert, KindBadge, ShortfallNotice } from "../components/ui";
 import { formatDay, formatLongDate, groupByWeek, parseDate, toIsoDate } from "../lib/dates";
+import { ReadinessCard } from "../components/ReadinessCard";
 
 export function PlanPage() {
   const { id } = useParams();
@@ -43,6 +44,7 @@ export function PlanPage() {
       </div>
 
       <ShortfallNotice shortfall={p.shortfall} />
+      <ReadinessCard certificationId={p.certificationId} />
       {(action.error || archive.error) && <Alert tone="error">{(action.error ?? archive.error)!.message}</Alert>}
 
       {weeks.map(({ week, items }) => (

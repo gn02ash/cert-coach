@@ -171,6 +171,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/readiness/{certificationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * An estimate of readiness per exam domain: objectives recalled × recent accuracy, from your practice answers.
+         * @description A domain needs 10 question answers in the last 90 days for a score. Answers lose half their weight every 14 days, and accuracy is shrunk toward 50% so a few answers can't read as certain.
+         */
+        get: operations["GetReadiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/search": {
         parameters: {
             query?: never;
@@ -787,6 +807,25 @@ export interface components {
             /** Format: int32 */
             objectivesTotal: number;
         };
+        DomainReadiness: {
+            /** Format: uuid */
+            domainId: string;
+            name: string;
+            /** Format: double */
+            weight: number;
+            /** Format: int32 */
+            score: null | number;
+            /** Format: int32 */
+            coverage: number;
+            /** Format: int32 */
+            accuracy: null | number;
+            /** Format: int32 */
+            objectivesCovered: number;
+            /** Format: int32 */
+            objectivesTotal: number;
+            /** Format: int32 */
+            answers: number;
+        };
         DomainScore: {
             /** Format: uuid */
             domainId: string;
@@ -1074,6 +1113,13 @@ export interface components {
             repetitions: number;
             /** Format: date-time */
             createdAt: string;
+        };
+        ReadinessReport: {
+            /** Format: int32 */
+            overall: null | number;
+            /** Format: int32 */
+            domainsScored: number;
+            domains: components["schemas"]["DomainReadiness"][];
         };
         ReviewCard: {
             /** Format: uuid */
@@ -1478,6 +1524,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiCapabilities"];
+                };
+            };
+        };
+    };
+    GetReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessReport"];
                 };
             };
         };

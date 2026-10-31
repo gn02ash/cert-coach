@@ -20,6 +20,7 @@ import {
   type MockExamSummary,
   type MockExamView,
   type StartMockExamRequest,
+  type ReadinessReport,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -276,7 +277,10 @@ export function useAnswer() {
   return useMutation({
     mutationFn: ({ id, request }: { id: string; request: AnswerRequest }) =>
       api<AnswerResult>(`/api/review/items/${id}/answer`, "POST", request),
-    onSuccess: () => client.invalidateQueries({ queryKey: keys.dashboard }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: keys.dashboard });
+      void client.invalidateQueries({ queryKey: ["readiness"] });
+    },
   });
 }
 
@@ -314,7 +318,14 @@ export function useSubmitMockExam() {
     onSuccess: (exam) => {
       client.setQueryData(["mock-exam", exam.id], exam);
       void client.invalidateQueries({ queryKey: ["mock-exams"] });
+      void client.invalidateQueries({ queryKey: ["readiness"] });
       void client.invalidateQueries({ queryKey: keys.dashboard });
     },
   });
 }
+
+export const useReadiness = (certificationId: string) =>
+  useQuery({
+    queryKey: ["readiness", certificationId],
+    queryFn: () => api<ReadinessReport>(`/api/readiness/${certificationId}`),
+  });

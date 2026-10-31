@@ -256,6 +256,39 @@
         }
       }
     },
+    "/api/readiness/{certificationId}": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "An estimate of readiness per exam domain: objectives recalled × recent accuracy, from your practice answers.",
+        "description": "A domain needs 10 question answers in the last 90 days for a score. Answers lose half their weight every 14 days, and accuracy is shrunk toward 50% so a few answers can't read as certain.",
+        "operationId": "GetReadiness",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/search": {
       "get": {
         "tags": [
@@ -2095,6 +2128,63 @@
           }
         }
       },
+      "DomainReadiness": {
+        "required": [
+          "domainId",
+          "name",
+          "weight",
+          "score",
+          "coverage",
+          "accuracy",
+          "objectivesCovered",
+          "objectivesTotal",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          },
+          "score": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "coverage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "objectivesCovered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "answers": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DomainScore": {
         "required": [
           "domainId",
@@ -3127,6 +3217,33 @@
           }
         }
       },
+      "ReadinessReport": {
+        "required": [
+          "overall",
+          "domainsScored",
+          "domains"
+        ],
+        "type": "object",
+        "properties": {
+          "overall": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "domainsScored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainReadiness"
+            }
+          }
+        }
+      },
       "ReviewCard": {
         "required": [
           "id",
@@ -3801,6 +3918,9 @@
       "name": "AI"
     },
     {
+      "name": "Review"
+    },
+    {
       "name": "Search"
     },
     {
@@ -3814,9 +3934,6 @@
     },
     {
       "name": "Practice"
-    },
-    {
-      "name": "Review"
     },
     {
       "name": "Mock exams"
