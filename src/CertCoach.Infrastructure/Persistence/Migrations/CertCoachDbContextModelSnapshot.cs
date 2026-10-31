@@ -490,6 +490,118 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("study_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("answer");
+
+                    b.Property<Guid>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.PrimitiveCollection<int[]>("CorrectOptions")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("correct_options");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly?>("DueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("due_on");
+
+                    b.Property<double>("EaseFactor")
+                        .HasColumnType("double precision")
+                        .HasColumnName("ease_factor");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<int>("IntervalDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("interval_days");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<int>("Lapses")
+                        .HasColumnType("integer")
+                        .HasColumnName("lapses");
+
+                    b.Property<DateTimeOffset?>("LastReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_reviewed_at");
+
+                    b.Property<Guid?>("ObjectiveId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("objective_id");
+
+                    b.PrimitiveCollection<string[]>("Options")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("options");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("prompt");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("integer")
+                        .HasColumnName("repetitions");
+
+                    b.Property<string>("Sources")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("sources");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_practice_items");
+
+                    b.HasIndex("ObjectiveId")
+                        .HasDatabaseName("ix_practice_items_objective_id");
+
+                    b.HasIndex("CertificationId", "ObjectiveId")
+                        .HasDatabaseName("ix_practice_items_certification_id_objective_id");
+
+                    b.HasIndex("OwnerId", "Status", "DueOn")
+                        .HasDatabaseName("ix_practice_items_owner_id_status_due_on");
+
+                    b.ToTable("practice_items", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -618,6 +730,22 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_study_sessions_study_plans_plan_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Certifications.Certification", null)
+                        .WithMany()
+                        .HasForeignKey("CertificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_practice_items_certifications_certification_id");
+
+                    b.HasOne("CertCoach.Domain.Certifications.Objective", null)
+                        .WithMany()
+                        .HasForeignKey("ObjectiveId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_practice_items_objectives_objective_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>

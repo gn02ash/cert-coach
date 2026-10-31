@@ -30,6 +30,9 @@ export type SearchResponse = Schemas["SearchResponse"];
 export type SearchHit = Schemas["SearchHit"];
 export type AskRequest = Schemas["AskRequest"];
 export type AskTurn = Schemas["AskTurn"];
+export type PracticeItemView = Schemas["PracticeItemView"];
+export type PracticeItemStatus = Schemas["PracticeItemStatus"];
+export type CreatePracticeItemRequest = Schemas["CreatePracticeItemRequest"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

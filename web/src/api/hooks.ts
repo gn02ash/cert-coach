@@ -9,6 +9,9 @@ import {
   type DocumentSummary,
   type OutlineDraft,
   type OutlineImport,
+  type CreatePracticeItemRequest,
+  type PracticeItemStatus,
+  type PracticeItemView,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -27,6 +30,7 @@ export const keys = {
   certification: (id: string) => ["certifications", id] as const,
   plan: (id: string) => ["plans", id] as const,
   documents: ["documents"] as const,
+  practiceItems: (certificationId: string) => ["practice-items", certificationId] as const,
   aiStatus: ["ai-status"] as const,
   search: (query: string, certificationId?: string) => ["search", query, certificationId ?? ""] as const,
 };
@@ -178,3 +182,35 @@ export const useSearch = (query: string, certificationId?: string) =>
     },
     enabled: query.trim().length > 0,
   });
+
+export const usePracticeItems = (certificationId: string | undefined) =>
+  useQuery({
+    queryKey: keys.practiceItems(certificationId ?? ""),
+    queryFn: () => api<PracticeItemView[]>(`/api/practice/items?certificationId=${certificationId}`),
+    enabled: !!certificationId,
+  });
+
+export function useCreatePracticeItem() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreatePracticeItemRequest) => api<PracticeItemView>("/api/practice/items", "POST", request),
+    onSuccess: (item) => client.invalidateQueries({ queryKey: keys.practiceItems(item.certificationId) }),
+  });
+}
+
+export function useSetPracticeItemStatus() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: PracticeItemStatus }) =>
+      api<PracticeItemView>(`/api/practice/items/${id}/status`, "PUT", { status }),
+    onSuccess: (item) => client.invalidateQueries({ queryKey: keys.practiceItems(item.certificationId) }),
+  });
+}
+
+export function useDeletePracticeItem(certificationId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/api/practice/items/${id}`, "DELETE"),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.practiceItems(certificationId) }),
+  });
+}

@@ -418,6 +418,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/practice/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A certification's practice questions and flashcards, optionally for one objective. */
+        get: operations["ListPracticeItems"];
+        put?: never;
+        /** Write your own question or flashcard. */
+        post: operations["CreatePracticeItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit an item. Its review schedule is kept. */
+        put: operations["UpdatePracticeItem"];
+        post?: never;
+        delete: operations["DeletePracticeItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/items/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Suspend an item to leave it out of reviews and exams, or make it active again. */
+        put: operations["SetPracticeItemStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -487,6 +539,17 @@ export interface components {
             /** Format: uuid */
             activePlanId: null | string;
         };
+        CreatePracticeItemRequest: {
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            prompt: string;
+            options: null | string[];
+            correctOptions: null | number[];
+            answer: string;
+        };
         DashboardView: {
             /** Format: date */
             today: string;
@@ -550,6 +613,14 @@ export interface components {
         IFormFile: string;
         ImportOutlineRequest: {
             url: string;
+        };
+        ItemSourceView: {
+            /** Format: uuid */
+            documentId: string;
+            documentTitle: null | string;
+            /** Format: int32 */
+            page: number;
+            quote: null | string;
         };
         ObjectiveView: {
             /** Format: uuid */
@@ -676,6 +747,35 @@ export interface components {
         };
         /** @enum {unknown} */
         PlanWarningCode: "ObjectivesPacked" | "HoursCapped" | "NoStudySlots";
+        /** @enum {unknown} */
+        PracticeItemKind: "SingleChoice" | "MultipleChoice" | "Flashcard";
+        /** @enum {unknown} */
+        PracticeItemOrigin: "Documents" | "ModelKnowledge" | "Manual";
+        /** @enum {unknown} */
+        PracticeItemStatus: "Active" | "Suspended";
+        PracticeItemView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            objectiveText: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            status: components["schemas"]["PracticeItemStatus"];
+            prompt: string;
+            options: string[];
+            correctOptions: number[];
+            answer: string;
+            sources: components["schemas"]["ItemSourceView"][];
+            /** Format: date */
+            dueOn: null | string;
+            /** Format: int32 */
+            repetitions: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
         SaveCertificationRequest: {
             examCode: string;
             name: string;
@@ -749,6 +849,9 @@ export interface components {
             /** Format: date-time */
             completedAt: null | string;
         };
+        SetPracticeItemStatusRequest: {
+            status: components["schemas"]["PracticeItemStatus"];
+        };
         SkillAreaDraft: {
             name: string;
             objectives: string[];
@@ -772,6 +875,12 @@ export interface components {
             title: string;
             /** Format: uuid */
             certificationId: null | string;
+        };
+        UpdatePracticeItemRequest: {
+            prompt: string;
+            options: null | string[];
+            correctOptions: null | number[];
+            answer: string;
         };
         UserProfile: {
             /** Format: uuid */
@@ -1500,6 +1609,125 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ListPracticeItems: {
+        parameters: {
+            query: {
+                certificationId: string;
+                objectiveId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"][];
+                };
+            };
+        };
+    };
+    CreatePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePracticeItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    UpdatePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePracticeItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    DeletePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetPracticeItemStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPracticeItemStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
             };
         };
     };
