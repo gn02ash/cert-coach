@@ -470,6 +470,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's items: everything due, then new items up to the daily limit. */
+        get: operations["GetReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short quiz on the given objectives, such as a study session's. */
+        get: operations["GetQuiz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/items/{id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a question or grade a flashcard. Returns the answer and when the item comes back. */
+        post: operations["AnswerItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/generations": {
         parameters: {
             query?: never;
@@ -535,6 +586,21 @@ export interface components {
             embeddingModel: string;
             chatAvailable: boolean;
             semanticSearch: boolean;
+        };
+        AnswerRequest: {
+            selectedOptions: null | number[];
+            grade: null | components["schemas"]["ReviewGrade"];
+            source?: components["schemas"]["ReviewSource"];
+        };
+        AnswerResult: {
+            correct: null | boolean;
+            correctOptions: number[];
+            answer: string;
+            sources: components["schemas"]["ItemSourceView"][];
+            /** Format: int32 */
+            intervalDays: number;
+            /** Format: date */
+            dueOn: string;
         };
         AskRequest: {
             question: string;
@@ -608,6 +674,8 @@ export interface components {
             /** Format: date */
             today: string;
             plans: components["schemas"]["PlanDashboard"][];
+            /** Format: int32 */
+            reviewDue: number;
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -870,6 +938,56 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ReviewCard: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            examCode: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            objectiveText: null | string;
+            domain: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            prompt: string;
+            options: string[];
+            /** Format: int32 */
+            chooseCount: number;
+            back: null | string;
+            isNew: boolean;
+            intervals: null | components["schemas"]["ReviewIntervals"];
+        };
+        /** @enum {unknown} */
+        ReviewGrade: "Again" | "Hard" | "Good" | "Easy" | null;
+        ReviewIntervals: {
+            /** Format: int32 */
+            again: number;
+            /** Format: int32 */
+            hard: number;
+            /** Format: int32 */
+            good: number;
+            /** Format: int32 */
+            easy: number;
+        };
+        ReviewSet: {
+            /** Format: date */
+            today: string;
+            /** Format: int32 */
+            due: number;
+            /** Format: int32 */
+            newAvailable: number;
+            /** Format: int32 */
+            newLeftToday: number;
+            /** Format: int32 */
+            reviewedToday: number;
+            cards: components["schemas"]["ReviewCard"][];
+        };
+        /**
+         * @default Review
+         * @enum {unknown}
+         */
+        ReviewSource: "Review" | "Quiz" | "MockExam";
         SaveCertificationRequest: {
             examCode: string;
             name: string;
@@ -1821,6 +1939,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    GetReviewQueue: {
+        parameters: {
+            query?: {
+                certificationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSet"];
+                };
+            };
+        };
+    };
+    GetQuiz: {
+        parameters: {
+            query: {
+                objectiveIds: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSet"];
+                };
+            };
+        };
+    };
+    AnswerItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerResult"];
                 };
             };
         };

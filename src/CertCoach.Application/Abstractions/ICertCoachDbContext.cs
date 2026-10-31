@@ -29,6 +29,8 @@ public interface ICertCoachDbContext
 
     DbSet<GenerationJob> GenerationJobs { get; }
 
+    DbSet<ReviewLog> ReviewLogs { get; }
+
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }
 

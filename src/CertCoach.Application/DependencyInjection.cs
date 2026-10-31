@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<UserAccountService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();
+        services.AddScoped<ReviewService>();
         services.AddScoped<AiItemWriter>();
         services.AddScoped<ItemGenerator>();
         services.AddScoped<GenerationService>();

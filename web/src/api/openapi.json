@@ -1134,6 +1134,114 @@
         }
       }
     },
+    "/api/review": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Today's items: everything due, then new items up to the daily limit.",
+        "operationId": "GetReviewQueue",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/quiz": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "A short quiz on the given objectives, such as a study session's.",
+        "operationId": "GetQuiz",
+        "parameters": [
+          {
+            "name": "objectiveIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/items/{id}/answer": {
+      "post": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Answer a question or grade a flashcard. Returns the answer and when the item comes back.",
+        "operationId": "AnswerItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/practice/generations": {
       "post": {
         "tags": [
@@ -1296,6 +1404,81 @@
           },
           "semanticSearch": {
             "type": "boolean"
+          }
+        }
+      },
+      "AnswerRequest": {
+        "required": [
+          "selectedOptions",
+          "grade"
+        ],
+        "type": "object",
+        "properties": {
+          "selectedOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "grade": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewGrade"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/ReviewSource"
+          }
+        }
+      },
+      "AnswerResult": {
+        "required": [
+          "correct",
+          "correctOptions",
+          "answer",
+          "sources",
+          "intervalDays",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "correct": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "correctOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
+          },
+          "intervalDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -1567,7 +1750,8 @@
       "DashboardView": {
         "required": [
           "today",
-          "plans"
+          "plans",
+          "reviewDue"
         ],
         "type": "object",
         "properties": {
@@ -1580,6 +1764,10 @@
             "items": {
               "$ref": "#/components/schemas/PlanDashboard"
             }
+          },
+          "reviewDue": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2508,6 +2696,178 @@
           }
         }
       },
+      "ReviewCard": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "objectiveId",
+          "objectiveText",
+          "domain",
+          "kind",
+          "origin",
+          "prompt",
+          "options",
+          "chooseCount",
+          "back",
+          "isNew",
+          "intervals"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chooseCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "back": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isNew": {
+            "type": "boolean"
+          },
+          "intervals": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewIntervals"
+              }
+            ]
+          }
+        }
+      },
+      "ReviewGrade": {
+        "enum": [
+          "Again",
+          "Hard",
+          "Good",
+          "Easy",
+          null
+        ]
+      },
+      "ReviewIntervals": {
+        "required": [
+          "again",
+          "hard",
+          "good",
+          "easy"
+        ],
+        "type": "object",
+        "properties": {
+          "again": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hard": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "good": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "easy": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ReviewSet": {
+        "required": [
+          "today",
+          "due",
+          "newAvailable",
+          "newLeftToday",
+          "reviewedToday",
+          "cards"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "due": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newAvailable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newLeftToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewedToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewCard"
+            }
+          }
+        }
+      },
+      "ReviewSource": {
+        "enum": [
+          "Review",
+          "Quiz",
+          "MockExam"
+        ],
+        "default": "Review"
+      },
       "SaveCertificationRequest": {
         "required": [
           "examCode",
@@ -2976,6 +3336,9 @@
     },
     {
       "name": "Practice"
+    },
+    {
+      "name": "Review"
     }
   ]
 }

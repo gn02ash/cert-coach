@@ -239,3 +239,20 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .practice-body { padding: 0.6rem 0 0.2rem 0; }
 .correct-option { color: var(--success); font-weight: 600; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Review */
+.nav-count { margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--accent); color: var(--accent-text); font-size: 0.72rem; font-weight: 700; }
+.session-links { display: flex; gap: 0.9rem; flex-wrap: wrap; }
+.review-banner { flex-direction: row; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.review-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.review-prompt { font-size: 1.1rem; font-weight: 600; overflow-wrap: anywhere; margin: 0; }
+.review-back { padding: 0.75rem 1rem; border-left: 3px solid var(--accent); background: var(--surface-2); white-space: pre-line; overflow-wrap: anywhere; }
+.review-quote { display: block; margin-top: 0.35rem; font-style: italic; }
+.options { display: grid; gap: 0.5rem; border: none; padding: 0; margin: 0; }
+.option { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.option input { width: auto; flex: none; margin-top: 0.2rem; padding: 0; accent-color: var(--accent); }
+.option.selected { border-color: var(--accent); }
+.option.correct { border-color: var(--success); background: var(--success-soft); }
+.option.wrong { border-color: var(--danger); background: var(--danger-soft); }
+.option-letter { font-weight: 700; color: var(--muted); }
+.grade-interval { display: block; font-size: 0.72rem; font-weight: 400; opacity: 0.8; }

@@ -1,11 +1,13 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Plans;
+using CertCoach.Application.Practice;
 using CertCoach.Domain.Planning;
 using Microsoft.EntityFrameworkCore;
 
 namespace CertCoach.Application.Dashboard;
 
-public sealed record DashboardView(DateOnly Today, IReadOnlyList<PlanDashboard> Plans);
+/// <param name="ReviewDue">Practice items due today across all certifications, plus new ones today's limit allows.</param>
+public sealed record DashboardView(DateOnly Today, IReadOnlyList<PlanDashboard> Plans, int ReviewDue);
 
 public sealed record PlanDashboard(
     Guid PlanId,
@@ -26,7 +28,7 @@ public sealed record PlanProgress(int Completed, int Missed, int Remaining, int 
 /// <summary>How many of a domain's objectives have had at least one completed Learn session.</summary>
 public sealed record DomainProgress(Guid DomainId, string Name, decimal Weight, int ObjectivesStudied, int ObjectivesTotal);
 
-public sealed class DashboardService(ICertCoachDbContext db, ICurrentUser user, UserClock clock)
+public sealed class DashboardService(ICertCoachDbContext db, ICurrentUser user, UserClock clock, ReviewService review)
 {
     public const int UpcomingDays = 7;
 
@@ -45,6 +47,7 @@ public sealed class DashboardService(ICertCoachDbContext db, ICurrentUser user, 
             .Where(c => c.OwnerId == user.UserId && certificationIds.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id, ct);
 
+        var reviewDue = await review.CountForTodayAsync(ct);
         return new DashboardView(today, plans.Select(plan =>
         {
             var certification = certifications[plan.CertificationId];
@@ -83,6 +86,6 @@ public sealed class DashboardService(ICertCoachDbContext db, ICurrentUser user, 
                     .ToList(),
                 sessions.Count(s => s.Status == SessionStatus.Planned && s.ScheduledDate < today),
                 plan.Shortfall);
-        }).ToList());
+        }).ToList(), reviewDue);
     }
 }

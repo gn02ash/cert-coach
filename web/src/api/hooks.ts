@@ -14,6 +14,9 @@ import {
   type PracticeItemView,
   type GenerateItemsRequest,
   type GenerationJobView,
+  type AnswerRequest,
+  type AnswerResult,
+  type ReviewSet,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -247,5 +250,29 @@ export function useCancelGeneration() {
   return useMutation({
     mutationFn: (id: string) => api<GenerationJobView>(`/api/practice/generations/${id}/cancel`, "POST"),
     onSuccess: (run) => client.invalidateQueries({ queryKey: keys.generations(run.certificationId) }),
+  });
+}
+
+/**
+ * Today's review queue, or a quiz on some objectives. Fetched once per visit: refetching mid-session would
+ * reshuffle the cards the learner is working through.
+ */
+export const useReviewSet = (scope: { certificationId?: string; objectiveIds?: string[] }) =>
+  useQuery({
+    queryKey: ["review", scope.certificationId ?? "", ...(scope.objectiveIds ?? [])],
+    queryFn: () =>
+      scope.objectiveIds?.length
+        ? api<ReviewSet>(`/api/review/quiz?${scope.objectiveIds.map((id) => `objectiveIds=${id}`).join("&")}`)
+        : api<ReviewSet>(`/api/review${scope.certificationId ? `?certificationId=${scope.certificationId}` : ""}`),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+
+export function useAnswer() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: AnswerRequest }) =>
+      api<AnswerResult>(`/api/review/items/${id}/answer`, "POST", request),
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.dashboard }),
   });
 }

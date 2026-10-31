@@ -35,6 +35,12 @@ export type PracticeItemStatus = Schemas["PracticeItemStatus"];
 export type CreatePracticeItemRequest = Schemas["CreatePracticeItemRequest"];
 export type GenerationJobView = Schemas["GenerationJobView"];
 export type GenerateItemsRequest = Schemas["GenerateItemsRequest"];
+export type ReviewSet = Schemas["ReviewSet"];
+export type ReviewCard = Schemas["ReviewCard"];
+export type ReviewGrade = Schemas["ReviewGrade"];
+export type ReviewSource = Schemas["ReviewSource"];
+export type AnswerRequest = Schemas["AnswerRequest"];
+export type AnswerResult = Schemas["AnswerResult"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

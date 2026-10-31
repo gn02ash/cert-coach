@@ -77,3 +77,27 @@ internal sealed class GenerationJobConfiguration : IEntityTypeConfiguration<Gene
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+internal sealed class ReviewLogConfiguration : IEntityTypeConfiguration<ReviewLog>
+{
+    public void Configure(EntityTypeBuilder<ReviewLog> builder)
+    {
+        builder.ToTable("review_logs");
+        builder.HasKey(r => r.Id);
+        builder.Property(r => r.Id).ValueGeneratedNever();
+        builder.Property(r => r.Kind).HasConversion<string>().HasMaxLength(20);
+        builder.Property(r => r.Source).HasConversion<string>().HasMaxLength(16);
+        builder.Property(r => r.Grade).HasConversion<string>().HasMaxLength(16);
+        builder.PrimitiveCollection(r => r.SelectedOptions).HasField("_selectedOptions").UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // Today's counts per learner, and readiness per certification over time.
+        builder.HasIndex(r => new { r.OwnerId, r.ReviewedOn });
+        builder.HasIndex(r => new { r.CertificationId, r.ReviewedAt });
+        builder.HasIndex(r => r.ItemId);
+
+        builder.HasOne<PracticeItem>()
+            .WithMany()
+            .HasForeignKey(r => r.ItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

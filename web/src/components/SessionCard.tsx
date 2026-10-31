@@ -27,9 +27,14 @@ export function SessionCard({ planId, session }: { planId: string; session: Sess
       {session.objectives.length === 1 && <p className="muted small">{session.objectives[0]!.skillArea}</p>}
       {session.kind === "MockExam" && <p className="muted small">Timed practice across every domain.</p>}
       {session.objectives.length > 0 && (
-        <Link className="small" to={`/search?q=${encodeURIComponent(session.objectives.map((o) => o.text).join(" "))}`}>
-          Find in my materials
-        </Link>
+        <div className="session-links">
+          <Link className="small" to={`/search?q=${encodeURIComponent(session.objectives.map((o) => o.text).join(" "))}`}>
+            Find in my materials
+          </Link>
+          <Link className="small" to={`/review?objectives=${session.objectives.map((o) => o.id).join(",")}`}>
+            Quiz me
+          </Link>
+        </div>
       )}
 
       {session.status === "Planned" ? (
