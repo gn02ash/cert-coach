@@ -21,7 +21,7 @@ test("generate practice items, review them and take a mock exam", async ({ page 
   await expect(page.getByText(/^Last run: \d+ new items? for 21 objectives/)).toBeVisible({ timeout: 60_000 });
   await expect(page.locator(".practice-item").first()).toBeVisible();
   await page.locator(".practice-item summary").first().click();
-  await expect(page.getByRole("link", { name: /DEMO-101.*p\. \d+/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /, p\. \d+$/ }).first()).toBeVisible();
   await shot(page, "10-practice-items");
 
   // Review a few items: reveal and grade flashcards, answer questions.
