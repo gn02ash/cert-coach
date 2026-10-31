@@ -33,6 +33,8 @@ export type AskTurn = Schemas["AskTurn"];
 export type PracticeItemView = Schemas["PracticeItemView"];
 export type PracticeItemStatus = Schemas["PracticeItemStatus"];
 export type CreatePracticeItemRequest = Schemas["CreatePracticeItemRequest"];
+export type GenerationJobView = Schemas["GenerationJobView"];
+export type GenerateItemsRequest = Schemas["GenerateItemsRequest"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

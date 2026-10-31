@@ -1,14 +1,18 @@
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
-import type { CertificationDetail, PracticeItemView } from "../api/client";
+import type { CertificationDetail, GenerationJobView, PracticeItemView } from "../api/client";
 import {
+  useAiStatus,
+  useCancelGeneration,
   useCertification,
+  useGenerations,
+  useStartGeneration,
   useCreatePracticeItem,
   useDeletePracticeItem,
   usePracticeItems,
   useSetPracticeItemStatus,
 } from "../api/hooks";
-import { Alert, EmptyState } from "../components/ui";
+import { Alert, EmptyState, ProgressBar } from "../components/ui";
 
 const kindLabels: Record<PracticeItemView["kind"], string> = {
   SingleChoice: "Question",
@@ -59,10 +63,11 @@ export function PracticeItemsPage() {
         {plural(all.length, "item")} · {active} active · {all.filter((i) => i.dueOn === null).length} not reviewed yet
       </p>
 
+      <GeneratePanel certification={certification.data} />
       <FlashcardForm certification={certification.data} />
 
       {all.length === 0 ? (
-        <EmptyState title="No practice items yet">Write a flashcard above to start.</EmptyState>
+        <EmptyState title="No practice items yet">Generate some from your documents, or write a flashcard.</EmptyState>
       ) : (
         groups.map((g) => (
           <section key={g.key} className="card stack">
@@ -80,6 +85,107 @@ export function PracticeItemsPage() {
       )}
     </div>
   );
+}
+
+function GeneratePanel({ certification }: { certification: CertificationDetail }) {
+  const ai = useAiStatus();
+  const runs = useGenerations(certification.id);
+  const start = useStartGeneration();
+  const cancel = useCancelGeneration();
+  const [scope, setScope] = useState("");
+  const [perObjective, setPerObjective] = useState(5);
+
+  const usesAi = ai.data?.chatAvailable ?? false;
+  const latest = runs.data?.[0];
+  const active = latest && (latest.status === "Queued" || latest.status === "Running") ? latest : undefined;
+  const objectiveCount = (domainId?: string) =>
+    certification.domains.filter((d) => !domainId || d.id === domainId).reduce((n, d) => n + d.skillAreas.reduce((m, s) => m + s.objectives.length, 0), 0);
+  const [kind, id] = scope.split(":");
+  const objectives = kind === "objective" ? 1 : objectiveCount(kind === "domain" ? id : undefined);
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    start.mutate({
+      certificationId: certification.id,
+      domainId: kind === "domain" ? id : null,
+      objectiveId: kind === "objective" ? id : null,
+      perObjective,
+    });
+  };
+
+  return (
+    <form className="card stack" onSubmit={submit}>
+      <h2 className="card-title">Generate questions</h2>
+      <p className="muted small">
+        {usesAi
+          ? "Exam-style questions and flashcards written from your documents, with a citation for each. Objectives your documents don't cover get questions from the model's own knowledge, marked \"Not from your materials\"."
+          : "Offline mode: fill-in-the-blank questions and flashcards made from sentences in your documents. Set AI_CHAT_PROVIDER for exam-style questions."}
+      </p>
+
+      {active ? (
+        <div className="stack" aria-live="polite">
+          <ProgressBar value={active.objectivesDone} max={active.objectives} label="Objectives done" />
+          <div className="row-between">
+            <span className="muted small">
+              {active.status === "Queued" ? "Waiting to start…" : `Objective ${Math.min(active.objectivesDone + 1, active.objectives)} of ${active.objectives}`} ·{" "}
+              {active.itemsCreated} items so far
+            </span>
+            <button type="button" className="button ghost small" disabled={cancel.isPending} onClick={() => cancel.mutate(active.id)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="form-grid">
+            <label className="span-2">
+              For
+              <select value={scope} onChange={(e) => setScope(e.target.value)}>
+                <option value="">Every objective ({objectiveCount()})</option>
+                {certification.domains.map((d) => (
+                  <optgroup key={d.id} label={d.name}>
+                    <option value={`domain:${d.id}`}>Every objective in this domain ({objectiveCount(d.id)})</option>
+                    {d.skillAreas.flatMap((s) =>
+                      s.objectives.map((o) => (
+                        <option key={o.id} value={`objective:${o.id}`}>
+                          {o.text}
+                        </option>
+                      )),
+                    )}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <label>
+              Items per objective
+              <input type="number" min={1} max={10} value={perObjective} onChange={(e) => setPerObjective(Number(e.target.value))} />
+            </label>
+          </div>
+          {usesAi && <p className="muted small">One model call per objective: {objectives} {objectives === 1 ? "call" : "calls"}.</p>}
+          {start.error && <Alert tone="error">{start.error.message}</Alert>}
+          <div className="actions">
+            <button className="button primary" disabled={start.isPending}>
+              Generate
+            </button>
+          </div>
+        </>
+      )}
+
+      {latest && !active && <RunSummary run={latest} />}
+    </form>
+  );
+}
+
+function RunSummary({ run }: { run: GenerationJobView }) {
+  if (run.status === "Failed") return <Alert tone="error">The last run stopped: {run.error}</Alert>;
+  const parts = [
+    `${run.status === "Cancelled" ? "Cancelled after" : "Last run:"} ${plural(run.itemsCreated, "new item")} for ${plural(run.objectivesDone, "objective")}`,
+    run.itemsRejected > 0 ? `${run.itemsRejected} dropped as duplicates or invalid` : "",
+    run.objectivesWithoutMaterial > 0
+      ? `${plural(run.objectivesWithoutMaterial, "objective")} not covered by your documents${run.usesAi ? " (written from the model's knowledge)" : ""}`
+      : "",
+  ].filter(Boolean);
+  return <p className="muted small">{parts.join(" · ")}.</p>;
 }
 
 function FlashcardForm({ certification }: { certification: CertificationDetail }) {

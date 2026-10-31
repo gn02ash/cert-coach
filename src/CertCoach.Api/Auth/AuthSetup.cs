@@ -83,7 +83,10 @@ internal static class AuthSetup
 
         services.AddAuthorization();
         services.AddHttpContextAccessor();
-        services.AddScoped<ICurrentUser, HttpCurrentUser>();
+        // A background job's scope sets its owner first; requests use the session cookie.
+        services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<BackgroundUser>() is { IsSet: true } job
+            ? job
+            : new HttpCurrentUser(sp.GetRequiredService<IHttpContextAccessor>()));
         return services;
     }
 

@@ -470,6 +470,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/practice/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The most recent generation runs for a certification, newest first. */
+        get: operations["ListGenerations"];
+        put?: never;
+        /**
+         * Write questions and flashcards in the background for a certification, a domain or an objective.
+         * @description With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.
+         */
+        post: operations["StartGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/generations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetGeneration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/generations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop a run before its next objective. Items already written are kept. */
+        post: operations["CancelGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -609,6 +663,46 @@ export interface components {
             weightMaxPercent: number;
             skillAreas: components["schemas"]["SkillAreaView"][];
         };
+        GenerateItemsRequest: {
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            domainId?: null | string;
+            /** Format: uuid */
+            objectiveId?: null | string;
+            /**
+             * Format: int32
+             * @default 5
+             */
+            perObjective: number;
+        };
+        GenerationJobView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            status: components["schemas"]["GenerationStatus"];
+            /** Format: int32 */
+            objectives: number;
+            /** Format: int32 */
+            objectivesDone: number;
+            /** Format: int32 */
+            perObjective: number;
+            /** Format: int32 */
+            itemsCreated: number;
+            /** Format: int32 */
+            itemsRejected: number;
+            /** Format: int32 */
+            objectivesWithoutMaterial: number;
+            usesAi: boolean;
+            error: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+        };
+        /** @enum {unknown} */
+        GenerationStatus: "Queued" | "Running" | "Completed" | "Failed" | "Cancelled";
         /** Format: binary */
         IFormFile: string;
         ImportOutlineRequest: {
@@ -1727,6 +1821,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    ListGenerations: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"][];
+                };
+            };
+        };
+    };
+    StartGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
+                };
+            };
+        };
+    };
+    GetGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
+                };
+            };
+        };
+    };
+    CancelGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
                 };
             };
         };

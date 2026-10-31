@@ -490,6 +490,84 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("study_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Practice.GenerationJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("error");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<DateTimeOffset?>("HeartbeatAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("heartbeat_at");
+
+                    b.Property<int>("ItemsCreated")
+                        .HasColumnType("integer")
+                        .HasColumnName("items_created");
+
+                    b.Property<int>("ItemsRejected")
+                        .HasColumnType("integer")
+                        .HasColumnName("items_rejected");
+
+                    b.PrimitiveCollection<Guid[]>("ObjectiveIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("objective_ids");
+
+                    b.Property<int>("ObjectivesDone")
+                        .HasColumnType("integer")
+                        .HasColumnName("objectives_done");
+
+                    b.Property<int>("ObjectivesWithoutMaterial")
+                        .HasColumnType("integer")
+                        .HasColumnName("objectives_without_material");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("PerObjective")
+                        .HasColumnType("integer")
+                        .HasColumnName("per_objective");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_generation_jobs");
+
+                    b.HasIndex("CertificationId", "Status")
+                        .HasDatabaseName("ix_generation_jobs_certification_id_status");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("ix_generation_jobs_status_created_at");
+
+                    b.ToTable("generation_jobs", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -730,6 +808,16 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_study_sessions_study_plans_plan_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Practice.GenerationJob", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Certifications.Certification", null)
+                        .WithMany()
+                        .HasForeignKey("CertificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_generation_jobs_certifications_certification_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>

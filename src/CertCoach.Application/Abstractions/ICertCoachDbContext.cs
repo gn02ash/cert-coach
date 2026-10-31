@@ -27,6 +27,8 @@ public interface ICertCoachDbContext
 
     DbSet<PracticeItem> PracticeItems { get; }
 
+    DbSet<GenerationJob> GenerationJobs { get; }
+
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }
 
