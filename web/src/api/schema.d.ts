@@ -521,6 +521,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mock-exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListMockExams"];
+        put?: never;
+        /** Start a timed exam with questions in proportion to the domain weights, or resume the one in progress. */
+        post: operations["StartMockExam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The exam. Answers and results appear once it is submitted; an exam past its time is submitted when read. */
+        get: operations["GetMockExam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}/answers/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SaveMockAnswer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SubmitMockExam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/generations": {
         parameters: {
             query?: never;
@@ -721,6 +787,17 @@ export interface components {
             /** Format: int32 */
             objectivesTotal: number;
         };
+        DomainScore: {
+            /** Format: uuid */
+            domainId: string;
+            name: string;
+            /** Format: double */
+            weight: number;
+            /** Format: int32 */
+            correct: number;
+            /** Format: int32 */
+            total: number;
+        };
         DomainView: {
             /** Format: uuid */
             id: string;
@@ -783,6 +860,66 @@ export interface components {
             /** Format: int32 */
             page: number;
             quote: null | string;
+        };
+        MockExamResult: {
+            /** Format: int32 */
+            correct: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percent: number;
+            domains: components["schemas"]["DomainScore"][];
+        };
+        /** @enum {unknown} */
+        MockExamStatus: "InProgress" | "Submitted";
+        MockExamSummary: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["MockExamStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            deadline: string;
+            /** Format: int32 */
+            questions: number;
+            /** Format: int32 */
+            percent: null | number;
+        };
+        MockExamView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            examCode: string;
+            status: components["schemas"]["MockExamStatus"];
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            deadline: string;
+            /** Format: int32 */
+            remainingSeconds: number;
+            /** Format: date-time */
+            submittedAt: null | string;
+            questions: components["schemas"]["MockQuestionView"][];
+            result: null | components["schemas"]["MockExamResult"];
+        };
+        MockQuestionView: {
+            /** Format: uuid */
+            itemId: string;
+            domain: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            prompt: string;
+            options: string[];
+            /** Format: int32 */
+            chooseCount: number;
+            selected: number[];
+            correctOptions: null | number[];
+            correct: null | boolean;
+            answer: null | string;
+            sources: null | components["schemas"]["ItemSourceView"][];
         };
         ObjectiveView: {
             /** Format: uuid */
@@ -1000,6 +1137,9 @@ export interface components {
             replacedByExamCode: null | string;
             outline: components["schemas"]["DomainDraft"][];
         };
+        SaveMockAnswerRequest: {
+            selected: number[];
+        };
         SearchHit: {
             /** Format: uuid */
             chunkId: string;
@@ -1079,6 +1219,22 @@ export interface components {
             eventType?: null | string;
             eventId?: null | string;
             reconnectionInterval?: null | string;
+        };
+        StartMockExamRequest: {
+            /** Format: uuid */
+            certificationId: null | string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            /**
+             * Format: int32
+             * @default 40
+             */
+            questionCount: number;
+            /**
+             * Format: int32
+             * @default 60
+             */
+            durationMinutes: number;
         };
         TimeZoneRequest: {
             timeZone: string;
@@ -2009,6 +2165,121 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnswerResult"];
+                };
+            };
+        };
+    };
+    ListMockExams: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamSummary"][];
+                };
+            };
+        };
+    };
+    StartMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartMockExamRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
+                };
+            };
+        };
+    };
+    GetMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
+                };
+            };
+        };
+    };
+    SaveMockAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMockAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubmitMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
                 };
             };
         };

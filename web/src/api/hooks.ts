@@ -17,6 +17,9 @@ import {
   type AnswerRequest,
   type AnswerResult,
   type ReviewSet,
+  type MockExamSummary,
+  type MockExamView,
+  type StartMockExamRequest,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -274,5 +277,44 @@ export function useAnswer() {
     mutationFn: ({ id, request }: { id: string; request: AnswerRequest }) =>
       api<AnswerResult>(`/api/review/items/${id}/answer`, "POST", request),
     onSuccess: () => client.invalidateQueries({ queryKey: keys.dashboard }),
+  });
+}
+
+export const useMockExams = (certificationId: string | undefined) =>
+  useQuery({
+    queryKey: ["mock-exams", certificationId ?? ""],
+    queryFn: () => api<MockExamSummary[]>(`/api/mock-exams?certificationId=${certificationId}`),
+    enabled: !!certificationId,
+  });
+
+export const useMockExam = (id: string | undefined) =>
+  useQuery({
+    queryKey: ["mock-exam", id ?? ""],
+    queryFn: () => api<MockExamView>(`/api/mock-exams/${id}`),
+    enabled: !!id,
+    // The timer runs locally from the server's remaining time; refetching mid-exam would reset the selection state.
+    refetchOnWindowFocus: false,
+  });
+
+export function useStartMockExam() {
+  return useMutation({ mutationFn: (request: StartMockExamRequest) => api<MockExamView>("/api/mock-exams", "POST", request) });
+}
+
+export function useSaveMockAnswer(examId: string) {
+  return useMutation({
+    mutationFn: ({ itemId, selected }: { itemId: string; selected: number[] }) =>
+      api<void>(`/api/mock-exams/${examId}/answers/${itemId}`, "PUT", { selected }),
+  });
+}
+
+export function useSubmitMockExam() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<MockExamView>(`/api/mock-exams/${id}/submit`, "POST"),
+    onSuccess: (exam) => {
+      client.setQueryData(["mock-exam", exam.id], exam);
+      void client.invalidateQueries({ queryKey: ["mock-exams"] });
+      void client.invalidateQueries({ queryKey: keys.dashboard });
+    },
   });
 }

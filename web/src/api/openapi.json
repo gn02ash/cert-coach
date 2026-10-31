@@ -1242,6 +1242,175 @@
         }
       }
     },
+    "/api/mock-exams": {
+      "post": {
+        "tags": [
+          "Mock exams"
+        ],
+        "summary": "Start a timed exam with questions in proportion to the domain weights, or resume the one in progress.",
+        "operationId": "StartMockExam",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartMockExamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "ListMockExams",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MockExamSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}": {
+      "get": {
+        "tags": [
+          "Mock exams"
+        ],
+        "summary": "The exam. Answers and results appear once it is submitted; an exam past its time is submitted when read.",
+        "operationId": "GetMockExam",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}/answers/{itemId}": {
+      "put": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "SaveMockAnswer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMockAnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}/submit": {
+      "post": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "SubmitMockExam",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/practice/generations": {
       "post": {
         "tags": [
@@ -1926,6 +2095,37 @@
           }
         }
       },
+      "DomainScore": {
+        "required": [
+          "domainId",
+          "name",
+          "weight",
+          "correct",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          },
+          "correct": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DomainView": {
         "required": [
           "id",
@@ -2117,6 +2317,237 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "MockExamResult": {
+        "required": [
+          "correct",
+          "total",
+          "percent",
+          "domains"
+        ],
+        "type": "object",
+        "properties": {
+          "correct": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainScore"
+            }
+          }
+        }
+      },
+      "MockExamStatus": {
+        "enum": [
+          "InProgress",
+          "Submitted"
+        ]
+      },
+      "MockExamSummary": {
+        "required": [
+          "id",
+          "status",
+          "startedAt",
+          "deadline",
+          "questions",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MockExamStatus"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MockExamView": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "status",
+          "durationMinutes",
+          "startedAt",
+          "deadline",
+          "remainingSeconds",
+          "submittedAt",
+          "questions",
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MockExamStatus"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remainingSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MockQuestionView"
+            }
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MockExamResult"
+              }
+            ]
+          }
+        }
+      },
+      "MockQuestionView": {
+        "required": [
+          "itemId",
+          "domain",
+          "kind",
+          "origin",
+          "prompt",
+          "options",
+          "chooseCount",
+          "selected",
+          "correctOptions",
+          "correct",
+          "answer",
+          "sources"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chooseCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "correct": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "answer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sources": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
           }
         }
       },
@@ -2921,6 +3352,21 @@
           }
         }
       },
+      "SaveMockAnswerRequest": {
+        "required": [
+          "selected"
+        ],
+        "type": "object",
+        "properties": {
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
       "SearchHit": {
         "required": [
           "chunkId",
@@ -3214,6 +3660,38 @@
           }
         }
       },
+      "StartMockExamRequest": {
+        "required": [
+          "certificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "questionCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 40
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
+          }
+        }
+      },
       "TimeZoneRequest": {
         "required": [
           "timeZone"
@@ -3339,6 +3817,9 @@
     },
     {
       "name": "Review"
+    },
+    {
+      "name": "Mock exams"
     }
   ]
 }

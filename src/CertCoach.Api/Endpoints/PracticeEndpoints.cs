@@ -1,4 +1,5 @@
 using CertCoach.Application.Practice;
+using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
 
 namespace CertCoach.Api.Endpoints;
@@ -53,6 +54,29 @@ internal static class PracticeEndpoints
                 service.AnswerAsync(id, request, ct))
             .WithName("AnswerItem")
             .WithSummary("Answer a question or grade a flashcard. Returns the answer and when the item comes back.");
+
+        var exams = api.MapGroup("/mock-exams").WithTags("Mock exams");
+
+        exams.MapPost("/", (StartMockExamRequest request, MockExamService service, CancellationToken ct) => service.StartAsync(request, ct))
+            .WithName("StartMockExam")
+            .WithSummary("Start a timed exam with questions in proportion to the domain weights, or resume the one in progress.");
+
+        exams.MapGet("/", (Guid certificationId, MockExamService service, CancellationToken ct) => service.ListAsync(certificationId, ct))
+            .WithName("ListMockExams");
+
+        exams.MapGet("/{id:guid}", (Guid id, MockExamService service, CancellationToken ct) => service.GetAsync(id, ct))
+            .WithName("GetMockExam")
+            .WithSummary("The exam. Answers and results appear once it is submitted; an exam past its time is submitted when read.");
+
+        exams.MapPut("/{id:guid}/answers/{itemId:guid}", async (Guid id, Guid itemId, SaveMockAnswerRequest request, MockExamService service, CancellationToken ct) =>
+            {
+                await service.SaveAnswerAsync(id, itemId, request, ct);
+                return TypedResults.NoContent();
+            })
+            .WithName("SaveMockAnswer");
+
+        exams.MapPost("/{id:guid}/submit", (Guid id, MockExamService service, CancellationToken ct) => service.SubmitAsync(id, ct))
+            .WithName("SubmitMockExam");
 
         var runs = api.MapGroup("/practice/generations").WithTags("Practice");
 

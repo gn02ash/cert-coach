@@ -256,3 +256,15 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .option.wrong { border-color: var(--danger); background: var(--danger-soft); }
 .option-letter { font-weight: 700; color: var(--muted); }
 .grade-interval { display: block; font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+
+/* Mock exams */
+.exam-clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; }
+.exam-clock.low { color: var(--danger); }
+.exam-nav { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.exam-nav-item { min-width: 2.2rem; padding: 0.3rem 0.4rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.exam-nav-item.answered { background: var(--accent-soft); border-color: var(--accent); }
+.exam-nav-item.current { outline: 2px solid var(--accent); outline-offset: 1px; font-weight: 700; }
+.exam-score { font-size: 2rem; font-weight: 700; margin: 0; }
+.exam-score .muted { font-size: 1rem; font-weight: 400; }
+.exam-result-summary { display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+.stack-tight { display: grid; gap: 0.3rem; }

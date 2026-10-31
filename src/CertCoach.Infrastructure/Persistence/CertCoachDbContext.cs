@@ -32,6 +32,8 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
 
     public DbSet<ReviewLog> ReviewLogs => Set<ReviewLog>();
 
+    public DbSet<MockExam> MockExams => Set<MockExam>();
+
     private Guid? OwnerFilter => currentUser?.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,6 +49,7 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
         modelBuilder.Entity<PracticeItem>().HasQueryFilter(i => OwnerFilter == null || i.OwnerId == OwnerFilter);
         modelBuilder.Entity<GenerationJob>().HasQueryFilter(j => OwnerFilter == null || j.OwnerId == OwnerFilter);
         modelBuilder.Entity<ReviewLog>().HasQueryFilter(r => OwnerFilter == null || r.OwnerId == OwnerFilter);
+        modelBuilder.Entity<MockExam>().HasQueryFilter(e => OwnerFilter == null || e.OwnerId == OwnerFilter);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
