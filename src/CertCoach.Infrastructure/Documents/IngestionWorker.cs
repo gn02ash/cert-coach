@@ -11,30 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace CertCoach.Infrastructure.Documents;
 
 /// <summary>Wakes the worker when a document is uploaded or retried.</summary>
-internal sealed class IngestionSignal : IIngestionSignal, IDisposable
-{
-    private readonly SemaphoreSlim _signal = new(0, 1);
-
-    public void Notify()
-    {
-        // Several uploads in a row need only one wake-up; the worker drains the whole queue.
-        if (_signal.CurrentCount == 0)
-        {
-            try
-            {
-                _signal.Release();
-            }
-            catch (SemaphoreFullException)
-            {
-                // Another upload released it first.
-            }
-        }
-    }
-
-    public Task WaitAsync(TimeSpan timeout, CancellationToken ct) => _signal.WaitAsync(timeout, ct);
-
-    public void Dispose() => _signal.Dispose();
-}
+internal sealed class IngestionSignal : WorkerSignal, IIngestionSignal;
 
 /// <summary>
 /// Processes pending documents one at a time. The queue is the documents table itself: a document is

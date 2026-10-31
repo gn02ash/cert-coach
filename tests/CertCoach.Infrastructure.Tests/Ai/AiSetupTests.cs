@@ -69,6 +69,28 @@ public class AiSetupTests
         handler.BetaHeader.ShouldContain("server-side-fallback-2026-07-01");
     }
 
+    [Fact]
+    public async Task Anthropic_requests_carry_the_agents_tools_and_output_schema()
+    {
+        var handler = new CapturingHandler();
+        using var client = AiSetup.CreateAnthropicClient("test-key", "claude-opus-5-5", new HttpClient(handler));
+        var tool = AIFunctionFactory.Create((string url) => url, "fetch_page", "Fetches a page.");
+
+        await client.GetResponseAsync(
+            [new ChatMessage(ChatRole.User, "Find the outline")],
+            new ChatOptions { Tools = [tool], ResponseFormat = ChatResponseFormat.ForJsonSchema<Answer>() },
+            TestContext.Current.CancellationToken);
+
+        var body = JsonNode.Parse(handler.Body!)!;
+        body["tools"]!.AsArray().ShouldHaveSingleItem()!["name"]!.GetValue<string>().ShouldBe("fetch_page");
+        var format = body["output_config"]!["format"]!;
+        format["type"]!.GetValue<string>().ShouldBe("json_schema");
+        format["schema"]!["additionalProperties"]!.GetValue<bool>().ShouldBeFalse();
+        body["max_tokens"]!.GetValue<int>().ShouldBe(16_000);
+    }
+
+    private sealed record Answer(string Name, List<string> Items);
+
     private sealed class CapturingHandler : HttpMessageHandler
     {
         public string? Body { get; private set; }

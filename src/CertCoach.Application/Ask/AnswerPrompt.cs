@@ -43,7 +43,11 @@ public static class AnswerPrompt
         return messages;
     }
 
-    internal static string UserMessage(string question, IReadOnlyList<AskSource> sources)
+    internal static string UserMessage(string question, IReadOnlyList<AskSource> sources) =>
+        SourcesBlock(sources) + "\n\n<question>\n" + question + "\n</question>";
+
+    /// <summary>The numbered sources in tags a document cannot close. Shared with question generation.</summary>
+    internal static string SourcesBlock(IReadOnlyList<AskSource> sources)
     {
         var text = new StringBuilder("<sources>\n");
         foreach (var s in sources)
@@ -59,7 +63,7 @@ public static class AnswerPrompt
             text.Append(">\n").Append(s.Text.Replace("</source", "</ source", StringComparison.OrdinalIgnoreCase)).Append("\n</source>\n");
         }
 
-        return text.Append("</sources>\n\n<question>\n").Append(question).Append("\n</question>").ToString();
+        return text.Append("</sources>").ToString();
     }
 
     private static string Attribute(string value) => SecurityElement.Escape(value);

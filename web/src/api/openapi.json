@@ -183,6 +183,38 @@
         }
       }
     },
+    "/api/outlines/import-url": {
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "summary": "Create an outline draft from an exam page, study guide or exam guide PDF.",
+        "description": "Reads at most 5 public pages on the same site. Without a chat provider, only outlines the parser can read are found.",
+        "operationId": "ImportOutlineFromUrl",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportOutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineImport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboard": {
       "get": {
         "tags": [
@@ -217,6 +249,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AiCapabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/readiness/{certificationId}": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "An estimate of readiness per exam domain: objectives recalled × recent accuracy, from your practice answers.",
+        "description": "A domain needs 10 question answers in the last 90 days for a score. Answers lose half their weight every 14 days, and accuracy is shrunk toward 50% so a few answers can't read as certain.",
+        "operationId": "GetReadiness",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessReport"
                 }
               }
             }
@@ -923,6 +988,589 @@
           }
         }
       }
+    },
+    "/api/practice/items": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "A certification's practice questions and flashcards, optionally for one objective.",
+        "operationId": "ListPracticeItems",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "objectiveId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PracticeItemView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Write your own question or flashcard.",
+        "operationId": "CreatePracticeItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePracticeItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/items/{id}": {
+      "put": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Edit an item. Its review schedule is kept.",
+        "operationId": "UpdatePracticeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePracticeItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "DeletePracticeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/practice/items/{id}/status": {
+      "put": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Suspend an item to leave it out of reviews and exams, or make it active again.",
+        "operationId": "SetPracticeItemStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPracticeItemStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Today's items: everything due, then new items up to the daily limit.",
+        "operationId": "GetReviewQueue",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/quiz": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "A short quiz on the given objectives, such as a study session's.",
+        "operationId": "GetQuiz",
+        "parameters": [
+          {
+            "name": "objectiveIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/items/{id}/answer": {
+      "post": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Answer a question or grade a flashcard. Returns the answer and when the item comes back.",
+        "operationId": "AnswerItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mock-exams": {
+      "post": {
+        "tags": [
+          "Mock exams"
+        ],
+        "summary": "Start a timed exam with questions in proportion to the domain weights, or resume the one in progress.",
+        "operationId": "StartMockExam",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartMockExamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "ListMockExams",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MockExamSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}": {
+      "get": {
+        "tags": [
+          "Mock exams"
+        ],
+        "summary": "The exam. Answers and results appear once it is submitted; an exam past its time is submitted when read.",
+        "operationId": "GetMockExam",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}/answers/{itemId}": {
+      "put": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "SaveMockAnswer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMockAnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/mock-exams/{id}/submit": {
+      "post": {
+        "tags": [
+          "Mock exams"
+        ],
+        "operationId": "SubmitMockExam",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MockExamView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/generations": {
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Write questions and flashcards in the background for a certification, a domain or an objective.",
+        "description": "With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.",
+        "operationId": "StartGeneration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "The most recent generation runs for a certification, newest first.",
+        "operationId": "ListGenerations",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenerationJobView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/generations/{id}": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "GetGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/generations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Stop a run before its next objective. Items already written are kept.",
+        "operationId": "CancelGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobView"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -958,6 +1606,81 @@
           },
           "semanticSearch": {
             "type": "boolean"
+          }
+        }
+      },
+      "AnswerRequest": {
+        "required": [
+          "selectedOptions",
+          "grade"
+        ],
+        "type": "object",
+        "properties": {
+          "selectedOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "grade": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewGrade"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/ReviewSource"
+          }
+        }
+      },
+      "AnswerResult": {
+        "required": [
+          "correct",
+          "correctOptions",
+          "answer",
+          "sources",
+          "intervalDays",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "correct": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "correctOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
+          },
+          "intervalDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
@@ -1173,10 +1896,64 @@
           }
         }
       },
+      "CreatePracticeItemRequest": {
+        "required": [
+          "certificationId",
+          "objectiveId",
+          "kind",
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
       "DashboardView": {
         "required": [
           "today",
-          "plans"
+          "plans",
+          "reviewDue"
         ],
         "type": "object",
         "properties": {
@@ -1189,6 +1966,10 @@
             "items": {
               "$ref": "#/components/schemas/PlanDashboard"
             }
+          },
+          "reviewDue": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -1347,6 +2128,94 @@
           }
         }
       },
+      "DomainReadiness": {
+        "required": [
+          "domainId",
+          "name",
+          "weight",
+          "score",
+          "coverage",
+          "accuracy",
+          "objectivesCovered",
+          "objectivesTotal",
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          },
+          "score": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "coverage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "objectivesCovered": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesTotal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "answers": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DomainScore": {
+        "required": [
+          "domainId",
+          "name",
+          "weight",
+          "correct",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "domainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "format": "double"
+          },
+          "correct": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DomainView": {
         "required": [
           "id",
@@ -1380,9 +2249,397 @@
           }
         }
       },
+      "GenerateItemsRequest": {
+        "required": [
+          "certificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domainId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "perObjective": {
+            "type": "integer",
+            "format": "int32",
+            "default": 5
+          }
+        }
+      },
+      "GenerationJobView": {
+        "required": [
+          "id",
+          "certificationId",
+          "status",
+          "objectives",
+          "objectivesDone",
+          "perObjective",
+          "itemsCreated",
+          "itemsRejected",
+          "objectivesWithoutMaterial",
+          "usesAi",
+          "error",
+          "createdAt",
+          "finishedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GenerationStatus"
+          },
+          "objectives": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesDone": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "perObjective": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemsCreated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemsRejected": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objectivesWithoutMaterial": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usesAi": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "GenerationStatus": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Completed",
+          "Failed",
+          "Cancelled"
+        ]
+      },
       "IFormFile": {
         "type": "string",
         "format": "binary"
+      },
+      "ImportOutlineRequest": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "ItemSourceView": {
+        "required": [
+          "documentId",
+          "documentTitle",
+          "page",
+          "quote"
+        ],
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quote": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MockExamResult": {
+        "required": [
+          "correct",
+          "total",
+          "percent",
+          "domains"
+        ],
+        "type": "object",
+        "properties": {
+          "correct": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainScore"
+            }
+          }
+        }
+      },
+      "MockExamStatus": {
+        "enum": [
+          "InProgress",
+          "Submitted"
+        ]
+      },
+      "MockExamSummary": {
+        "required": [
+          "id",
+          "status",
+          "startedAt",
+          "deadline",
+          "questions",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MockExamStatus"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MockExamView": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "status",
+          "durationMinutes",
+          "startedAt",
+          "deadline",
+          "remainingSeconds",
+          "submittedAt",
+          "questions",
+          "result"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MockExamStatus"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remainingSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MockQuestionView"
+            }
+          },
+          "result": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MockExamResult"
+              }
+            ]
+          }
+        }
+      },
+      "MockQuestionView": {
+        "required": [
+          "itemId",
+          "domain",
+          "kind",
+          "origin",
+          "prompt",
+          "options",
+          "chooseCount",
+          "selected",
+          "correctOptions",
+          "correct",
+          "answer",
+          "sources"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chooseCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "correct": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "answer": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sources": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
+          }
+        }
       },
       "ObjectiveView": {
         "required": [
@@ -1424,6 +2681,70 @@
             "format": "int32"
           }
         }
+      },
+      "OutlineImport": {
+        "required": [
+          "draft",
+          "sourceUrl",
+          "examCode",
+          "name",
+          "vendor",
+          "outlineVersionDate",
+          "pagesRead",
+          "method"
+        ],
+        "type": "object",
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/OutlineDraft"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "examCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "vendor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outlineVersionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "pagesRead": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "method": {
+            "$ref": "#/components/schemas/OutlineImportMethod"
+          }
+        }
+      },
+      "OutlineImportMethod": {
+        "enum": [
+          "Parser",
+          "Ai",
+          "Agent"
+        ]
       },
       "ParseOutlineRequest": {
         "required": [
@@ -1784,6 +3105,317 @@
           "NoStudySlots"
         ]
       },
+      "PracticeItemKind": {
+        "enum": [
+          "SingleChoice",
+          "MultipleChoice",
+          "Flashcard"
+        ]
+      },
+      "PracticeItemOrigin": {
+        "enum": [
+          "Documents",
+          "ModelKnowledge",
+          "Manual"
+        ]
+      },
+      "PracticeItemStatus": {
+        "enum": [
+          "Active",
+          "Suspended"
+        ]
+      },
+      "PracticeItemView": {
+        "required": [
+          "id",
+          "certificationId",
+          "objectiveId",
+          "objectiveText",
+          "kind",
+          "origin",
+          "status",
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer",
+          "sources",
+          "dueOn",
+          "repetitions",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PracticeItemStatus"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
+          },
+          "dueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "repetitions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReadinessReport": {
+        "required": [
+          "overall",
+          "domainsScored",
+          "domains"
+        ],
+        "type": "object",
+        "properties": {
+          "overall": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "domainsScored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomainReadiness"
+            }
+          }
+        }
+      },
+      "ReviewCard": {
+        "required": [
+          "id",
+          "certificationId",
+          "examCode",
+          "objectiveId",
+          "objectiveText",
+          "domain",
+          "kind",
+          "origin",
+          "prompt",
+          "options",
+          "chooseCount",
+          "back",
+          "isNew",
+          "intervals"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "examCode": {
+            "type": "string"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "domain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chooseCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "back": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isNew": {
+            "type": "boolean"
+          },
+          "intervals": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewIntervals"
+              }
+            ]
+          }
+        }
+      },
+      "ReviewGrade": {
+        "enum": [
+          "Again",
+          "Hard",
+          "Good",
+          "Easy",
+          null
+        ]
+      },
+      "ReviewIntervals": {
+        "required": [
+          "again",
+          "hard",
+          "good",
+          "easy"
+        ],
+        "type": "object",
+        "properties": {
+          "again": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hard": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "good": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "easy": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ReviewSet": {
+        "required": [
+          "today",
+          "due",
+          "newAvailable",
+          "newLeftToday",
+          "reviewedToday",
+          "cards"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "due": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newAvailable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newLeftToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewedToday": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewCard"
+            }
+          }
+        }
+      },
+      "ReviewSource": {
+        "enum": [
+          "Review",
+          "Quiz",
+          "MockExam"
+        ],
+        "default": "Review"
+      },
       "SaveCertificationRequest": {
         "required": [
           "examCode",
@@ -1833,6 +3465,21 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DomainDraft"
+            }
+          }
+        }
+      },
+      "SaveMockAnswerRequest": {
+        "required": [
+          "selected"
+        ],
+        "type": "object",
+        "properties": {
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         }
@@ -2053,6 +3700,17 @@
           }
         }
       },
+      "SetPracticeItemStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PracticeItemStatus"
+          }
+        }
+      },
       "SkillAreaDraft": {
         "required": [
           "name",
@@ -2119,6 +3777,38 @@
           }
         }
       },
+      "StartMockExamRequest": {
+        "required": [
+          "certificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "questionCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 40
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 60
+          }
+        }
+      },
       "TimeZoneRequest": {
         "required": [
           "timeZone"
@@ -2146,6 +3836,42 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "UpdatePracticeItemRequest": {
+        "required": [
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
           }
         }
       },
@@ -2192,6 +3918,9 @@
       "name": "AI"
     },
     {
+      "name": "Review"
+    },
+    {
       "name": "Search"
     },
     {
@@ -2202,6 +3931,12 @@
     },
     {
       "name": "Documents"
+    },
+    {
+      "name": "Practice"
+    },
+    {
+      "name": "Mock exams"
     }
   ]
 }

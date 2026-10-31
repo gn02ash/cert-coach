@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { PlanDashboard } from "../api/client";
 import { useDashboard, useRescheduleOverdue } from "../api/hooks";
+import { ReadinessCard } from "../components/ReadinessCard";
 import { SessionCard } from "../components/SessionCard";
 import { EmptyState, KindBadge, ProgressBar, ShortfallNotice } from "../components/ui";
 import { formatDay, formatLongDate } from "../lib/dates";
@@ -24,7 +25,7 @@ export function DashboardPage() {
   if (dashboard.isPending) return <div className="page-loading">Loading…</div>;
   if (dashboard.error) return <p className="error-text">{dashboard.error.message}</p>;
 
-  const { today, plans } = dashboard.data;
+  const { today, plans, reviewDue } = dashboard.data;
 
   return (
     <div className="stack">
@@ -32,6 +33,17 @@ export function DashboardPage() {
         <h1>Today</h1>
         <span className="muted">{formatLongDate(today)}</span>
       </div>
+
+      {reviewDue > 0 && (
+        <div className="card row-between review-banner">
+          <span>
+            <strong>{reviewDue}</strong> practice {reviewDue === 1 ? "item" : "items"} to review today
+          </span>
+          <Link className="button primary small" to="/review">
+            Start review
+          </Link>
+        </div>
+      )}
 
       {plans.length === 0 && (
         <EmptyState title="No active study plan yet">
@@ -114,6 +126,8 @@ function PlanSection({ plan }: { plan: PlanDashboard }) {
             ))}
           </ul>
         </div>
+
+        <ReadinessCard certificationId={plan.certificationId} />
 
         <div className="card span-2">
           <h3 className="card-title">Next 7 days</h3>

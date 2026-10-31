@@ -1,8 +1,9 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
-import { useLogout, useMe } from "../api/hooks";
+import { useDashboard, useLogout, useMe } from "../api/hooks";
 
 export function Layout() {
   const me = useMe();
+  const due = useDashboard().data?.reviewDue ?? 0;
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -19,6 +20,9 @@ export function Layout() {
           <nav className="nav">
             <NavLink to="/" end>
               Today
+            </NavLink>
+            <NavLink to="/review">
+              Review{due > 0 && <span className="nav-count" aria-label={`${due} due`}>{due}</span>}
             </NavLink>
             <NavLink to="/certifications">Certifications</NavLink>
             <NavLink to="/library">Library</NavLink>

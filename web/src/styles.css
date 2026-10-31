@@ -104,6 +104,10 @@ a { color: var(--accent); }
 .icon-button { border: none; background: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 0 0.3rem; }
 .icon-button:hover { color: var(--danger); }
 .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.url-import { display: flex; flex-direction: row; gap: 0.5rem; align-items: flex-end; flex-wrap: wrap; }
+.url-import .grow { flex: 1 1 18rem; }
+.divider-text { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); font-size: 0.85rem; }
+.divider-text::before, .divider-text::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
 
 /* Badges */
 .badge { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
@@ -223,3 +227,45 @@ mark { background: var(--warning-soft); color: inherit; border-radius: 3px; padd
 .ask-form textarea { resize: vertical; }
 .ask-form select { width: auto; }
 code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; border-radius: 4px; }
+
+/* Practice items */
+.badge.warning { background: var(--warning-soft); color: var(--warning); }
+.objective-title { font-size: 1rem; font-weight: 600; margin: 0.1rem 0 0; }
+.practice-item { border-top: 1px solid var(--border); padding-top: 0.6rem; }
+.practice-item:first-child { border-top: none; padding-top: 0; }
+.practice-item.suspended .practice-prompt { color: var(--muted); }
+.practice-item summary { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: baseline; cursor: pointer; }
+.practice-prompt { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
+.practice-body { padding: 0.6rem 0 0.2rem 0; }
+.correct-option { color: var(--success); font-weight: 600; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Review */
+.nav-count { margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--accent); color: var(--accent-text); font-size: 0.72rem; font-weight: 700; }
+.session-links { display: flex; gap: 0.9rem; flex-wrap: wrap; }
+.review-banner { flex-direction: row; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.review-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.review-prompt { font-size: 1.1rem; font-weight: 600; overflow-wrap: anywhere; margin: 0; }
+.review-back { padding: 0.75rem 1rem; border-left: 3px solid var(--accent); background: var(--surface-2); white-space: pre-line; overflow-wrap: anywhere; }
+.review-quote { display: block; margin-top: 0.35rem; font-style: italic; }
+.options { display: grid; gap: 0.5rem; border: none; padding: 0; margin: 0; }
+.option { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.option input { width: auto; flex: none; margin-top: 0.2rem; padding: 0; accent-color: var(--accent); }
+.option.selected { border-color: var(--accent); }
+.option.correct { border-color: var(--success); background: var(--success-soft); }
+.option.wrong { border-color: var(--danger); background: var(--danger-soft); }
+.option-letter { font-weight: 700; color: var(--muted); }
+.grade-interval { display: block; font-size: 0.72rem; font-weight: 400; opacity: 0.8; }
+
+/* Mock exams */
+.exam-clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; }
+.exam-clock.low { color: var(--danger); }
+.exam-nav { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.exam-nav-item { min-width: 2.2rem; padding: 0.3rem 0.4rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.exam-nav-item.answered { background: var(--accent-soft); border-color: var(--accent); }
+.exam-nav-item.current { outline: 2px solid var(--accent); outline-offset: 1px; font-weight: 700; }
+.exam-score { font-size: 2rem; font-weight: 700; margin: 0; }
+.exam-score .muted { font-size: 1rem; font-weight: 400; }
+.exam-result-summary { display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+.stack-tight { display: grid; gap: 0.3rem; }
+.small-big { font-size: 1.5rem; }

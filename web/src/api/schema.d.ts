@@ -118,6 +118,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/outlines/import-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an outline draft from an exam page, study guide or exam guide PDF.
+         * @description Reads at most 5 public pages on the same site. Without a chat provider, only outlines the parser can read are found.
+         */
+        post: operations["ImportOutlineFromUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard": {
         parameters: {
             query?: never;
@@ -143,6 +163,26 @@ export interface paths {
         };
         /** Which chat and embedding providers are active; offline mode has no chat model. */
         get: operations["GetAiStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/readiness/{certificationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * An estimate of readiness per exam domain: objectives recalled × recent accuracy, from your practice answers.
+         * @description A domain needs 10 question answers in the last 90 days for a score. Answers lose half their weight every 14 days, and accuracy is shrunk toward 50% so a few answers can't read as certain.
+         */
+        get: operations["GetReadiness"];
         put?: never;
         post?: never;
         delete?: never;
@@ -398,6 +438,229 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/practice/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A certification's practice questions and flashcards, optionally for one objective. */
+        get: operations["ListPracticeItems"];
+        put?: never;
+        /** Write your own question or flashcard. */
+        post: operations["CreatePracticeItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit an item. Its review schedule is kept. */
+        put: operations["UpdatePracticeItem"];
+        post?: never;
+        delete: operations["DeletePracticeItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/items/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Suspend an item to leave it out of reviews and exams, or make it active again. */
+        put: operations["SetPracticeItemStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's items: everything due, then new items up to the daily limit. */
+        get: operations["GetReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A short quiz on the given objectives, such as a study session's. */
+        get: operations["GetQuiz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/items/{id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a question or grade a flashcard. Returns the answer and when the item comes back. */
+        post: operations["AnswerItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListMockExams"];
+        put?: never;
+        /** Start a timed exam with questions in proportion to the domain weights, or resume the one in progress. */
+        post: operations["StartMockExam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The exam. Answers and results appear once it is submitted; an exam past its time is submitted when read. */
+        get: operations["GetMockExam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}/answers/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SaveMockAnswer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mock-exams/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SubmitMockExam"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The most recent generation runs for a certification, newest first. */
+        get: operations["ListGenerations"];
+        put?: never;
+        /**
+         * Write questions and flashcards in the background for a certification, a domain or an objective.
+         * @description With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.
+         */
+        post: operations["StartGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/generations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetGeneration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/generations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop a run before its next objective. Items already written are kept. */
+        post: operations["CancelGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -409,6 +672,21 @@ export interface components {
             embeddingModel: string;
             chatAvailable: boolean;
             semanticSearch: boolean;
+        };
+        AnswerRequest: {
+            selectedOptions: null | number[];
+            grade: null | components["schemas"]["ReviewGrade"];
+            source?: components["schemas"]["ReviewSource"];
+        };
+        AnswerResult: {
+            correct: null | boolean;
+            correctOptions: number[];
+            answer: string;
+            sources: components["schemas"]["ItemSourceView"][];
+            /** Format: int32 */
+            intervalDays: number;
+            /** Format: date */
+            dueOn: string;
         };
         AskRequest: {
             question: string;
@@ -467,10 +745,23 @@ export interface components {
             /** Format: uuid */
             activePlanId: null | string;
         };
+        CreatePracticeItemRequest: {
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            prompt: string;
+            options: null | string[];
+            correctOptions: null | number[];
+            answer: string;
+        };
         DashboardView: {
             /** Format: date */
             today: string;
             plans: components["schemas"]["PlanDashboard"][];
+            /** Format: int32 */
+            reviewDue: number;
         };
         /** @enum {unknown} */
         DayOfWeek: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
@@ -516,6 +807,36 @@ export interface components {
             /** Format: int32 */
             objectivesTotal: number;
         };
+        DomainReadiness: {
+            /** Format: uuid */
+            domainId: string;
+            name: string;
+            /** Format: double */
+            weight: number;
+            /** Format: int32 */
+            score: null | number;
+            /** Format: int32 */
+            coverage: number;
+            /** Format: int32 */
+            accuracy: null | number;
+            /** Format: int32 */
+            objectivesCovered: number;
+            /** Format: int32 */
+            objectivesTotal: number;
+            /** Format: int32 */
+            answers: number;
+        };
+        DomainScore: {
+            /** Format: uuid */
+            domainId: string;
+            name: string;
+            /** Format: double */
+            weight: number;
+            /** Format: int32 */
+            correct: number;
+            /** Format: int32 */
+            total: number;
+        };
         DomainView: {
             /** Format: uuid */
             id: string;
@@ -526,8 +847,119 @@ export interface components {
             weightMaxPercent: number;
             skillAreas: components["schemas"]["SkillAreaView"][];
         };
+        GenerateItemsRequest: {
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            domainId?: null | string;
+            /** Format: uuid */
+            objectiveId?: null | string;
+            /**
+             * Format: int32
+             * @default 5
+             */
+            perObjective: number;
+        };
+        GenerationJobView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            status: components["schemas"]["GenerationStatus"];
+            /** Format: int32 */
+            objectives: number;
+            /** Format: int32 */
+            objectivesDone: number;
+            /** Format: int32 */
+            perObjective: number;
+            /** Format: int32 */
+            itemsCreated: number;
+            /** Format: int32 */
+            itemsRejected: number;
+            /** Format: int32 */
+            objectivesWithoutMaterial: number;
+            usesAi: boolean;
+            error: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+        };
+        /** @enum {unknown} */
+        GenerationStatus: "Queued" | "Running" | "Completed" | "Failed" | "Cancelled";
         /** Format: binary */
         IFormFile: string;
+        ImportOutlineRequest: {
+            url: string;
+        };
+        ItemSourceView: {
+            /** Format: uuid */
+            documentId: string;
+            documentTitle: null | string;
+            /** Format: int32 */
+            page: number;
+            quote: null | string;
+        };
+        MockExamResult: {
+            /** Format: int32 */
+            correct: number;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            percent: number;
+            domains: components["schemas"]["DomainScore"][];
+        };
+        /** @enum {unknown} */
+        MockExamStatus: "InProgress" | "Submitted";
+        MockExamSummary: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["MockExamStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            deadline: string;
+            /** Format: int32 */
+            questions: number;
+            /** Format: int32 */
+            percent: null | number;
+        };
+        MockExamView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            examCode: string;
+            status: components["schemas"]["MockExamStatus"];
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            deadline: string;
+            /** Format: int32 */
+            remainingSeconds: number;
+            /** Format: date-time */
+            submittedAt: null | string;
+            questions: components["schemas"]["MockQuestionView"][];
+            result: null | components["schemas"]["MockExamResult"];
+        };
+        MockQuestionView: {
+            /** Format: uuid */
+            itemId: string;
+            domain: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            prompt: string;
+            options: string[];
+            /** Format: int32 */
+            chooseCount: number;
+            selected: number[];
+            correctOptions: null | number[];
+            correct: null | boolean;
+            answer: null | string;
+            sources: null | components["schemas"]["ItemSourceView"][];
+        };
         ObjectiveView: {
             /** Format: uuid */
             id: string;
@@ -539,6 +971,20 @@ export interface components {
             /** Format: int32 */
             objectiveCount?: number;
         };
+        OutlineImport: {
+            draft: components["schemas"]["OutlineDraft"];
+            /** Format: uri */
+            sourceUrl: string;
+            examCode: null | string;
+            name: null | string;
+            vendor: null | string;
+            /** Format: date */
+            outlineVersionDate: null | string;
+            pagesRead: string[];
+            method: components["schemas"]["OutlineImportMethod"];
+        };
+        /** @enum {unknown} */
+        OutlineImportMethod: "Parser" | "Ai" | "Agent";
         ParseOutlineRequest: {
             text: string;
         };
@@ -639,6 +1085,92 @@ export interface components {
         };
         /** @enum {unknown} */
         PlanWarningCode: "ObjectivesPacked" | "HoursCapped" | "NoStudySlots";
+        /** @enum {unknown} */
+        PracticeItemKind: "SingleChoice" | "MultipleChoice" | "Flashcard";
+        /** @enum {unknown} */
+        PracticeItemOrigin: "Documents" | "ModelKnowledge" | "Manual";
+        /** @enum {unknown} */
+        PracticeItemStatus: "Active" | "Suspended";
+        PracticeItemView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            objectiveText: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            status: components["schemas"]["PracticeItemStatus"];
+            prompt: string;
+            options: string[];
+            correctOptions: number[];
+            answer: string;
+            sources: components["schemas"]["ItemSourceView"][];
+            /** Format: date */
+            dueOn: null | string;
+            /** Format: int32 */
+            repetitions: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ReadinessReport: {
+            /** Format: int32 */
+            overall: null | number;
+            /** Format: int32 */
+            domainsScored: number;
+            domains: components["schemas"]["DomainReadiness"][];
+        };
+        ReviewCard: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            examCode: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            objectiveText: null | string;
+            domain: null | string;
+            kind: components["schemas"]["PracticeItemKind"];
+            origin: components["schemas"]["PracticeItemOrigin"];
+            prompt: string;
+            options: string[];
+            /** Format: int32 */
+            chooseCount: number;
+            back: null | string;
+            isNew: boolean;
+            intervals: null | components["schemas"]["ReviewIntervals"];
+        };
+        /** @enum {unknown} */
+        ReviewGrade: "Again" | "Hard" | "Good" | "Easy" | null;
+        ReviewIntervals: {
+            /** Format: int32 */
+            again: number;
+            /** Format: int32 */
+            hard: number;
+            /** Format: int32 */
+            good: number;
+            /** Format: int32 */
+            easy: number;
+        };
+        ReviewSet: {
+            /** Format: date */
+            today: string;
+            /** Format: int32 */
+            due: number;
+            /** Format: int32 */
+            newAvailable: number;
+            /** Format: int32 */
+            newLeftToday: number;
+            /** Format: int32 */
+            reviewedToday: number;
+            cards: components["schemas"]["ReviewCard"][];
+        };
+        /**
+         * @default Review
+         * @enum {unknown}
+         */
+        ReviewSource: "Review" | "Quiz" | "MockExam";
         SaveCertificationRequest: {
             examCode: string;
             name: string;
@@ -650,6 +1182,9 @@ export interface components {
             status: components["schemas"]["CertificationStatus"];
             replacedByExamCode: null | string;
             outline: components["schemas"]["DomainDraft"][];
+        };
+        SaveMockAnswerRequest: {
+            selected: number[];
         };
         SearchHit: {
             /** Format: uuid */
@@ -712,6 +1247,9 @@ export interface components {
             /** Format: date-time */
             completedAt: null | string;
         };
+        SetPracticeItemStatusRequest: {
+            status: components["schemas"]["PracticeItemStatus"];
+        };
         SkillAreaDraft: {
             name: string;
             objectives: string[];
@@ -728,6 +1266,22 @@ export interface components {
             eventId?: null | string;
             reconnectionInterval?: null | string;
         };
+        StartMockExamRequest: {
+            /** Format: uuid */
+            certificationId: null | string;
+            /** Format: uuid */
+            sessionId?: null | string;
+            /**
+             * Format: int32
+             * @default 40
+             */
+            questionCount: number;
+            /**
+             * Format: int32
+             * @default 60
+             */
+            durationMinutes: number;
+        };
         TimeZoneRequest: {
             timeZone: string;
         };
@@ -735,6 +1289,12 @@ export interface components {
             title: string;
             /** Format: uuid */
             certificationId: null | string;
+        };
+        UpdatePracticeItemRequest: {
+            prompt: string;
+            options: null | string[];
+            correctOptions: null | number[];
+            answer: string;
         };
         UserProfile: {
             /** Format: uuid */
@@ -904,6 +1464,30 @@ export interface operations {
             };
         };
     };
+    ImportOutlineFromUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportOutlineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineImport"];
+                };
+            };
+        };
+    };
     GetDashboard: {
         parameters: {
             query?: never;
@@ -940,6 +1524,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiCapabilities"];
+                };
+            };
+        };
+    };
+    GetReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certificationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessReport"];
                 };
             };
         };
@@ -1439,6 +2045,400 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ListPracticeItems: {
+        parameters: {
+            query: {
+                certificationId: string;
+                objectiveId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"][];
+                };
+            };
+        };
+    };
+    CreatePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePracticeItemRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    UpdatePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePracticeItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    DeletePracticeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SetPracticeItemStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPracticeItemStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeItemView"];
+                };
+            };
+        };
+    };
+    GetReviewQueue: {
+        parameters: {
+            query?: {
+                certificationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSet"];
+                };
+            };
+        };
+    };
+    GetQuiz: {
+        parameters: {
+            query: {
+                objectiveIds: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSet"];
+                };
+            };
+        };
+    };
+    AnswerItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerResult"];
+                };
+            };
+        };
+    };
+    ListMockExams: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamSummary"][];
+                };
+            };
+        };
+    };
+    StartMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartMockExamRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
+                };
+            };
+        };
+    };
+    GetMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
+                };
+            };
+        };
+    };
+    SaveMockAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMockAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SubmitMockExam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MockExamView"];
+                };
+            };
+        };
+    };
+    ListGenerations: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"][];
+                };
+            };
+        };
+    };
+    StartGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
+                };
+            };
+        };
+    };
+    GetGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
+                };
+            };
+        };
+    };
+    CancelGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobView"];
+                };
             };
         };
     };

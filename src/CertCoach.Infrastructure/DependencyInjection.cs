@@ -1,12 +1,16 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Certifications.Outlines.Import;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
+using CertCoach.Application.Practice.Generation;
 using CertCoach.Application.Search;
 using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
+using CertCoach.Infrastructure.Practice;
 using CertCoach.Infrastructure.Search;
 using CertCoach.Infrastructure.Storage;
+using CertCoach.Infrastructure.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +34,8 @@ public static class DependencyInjection
         services.AddAi(configuration);
         services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddSingleton<ITokenCounter, TiktokenTokenCounter>();
+        services.AddHttpClient<IWebPageFetcher, HttpWebPageFetcher>(http => http.Timeout = HttpWebPageFetcher.Timeout)
+            .ConfigurePrimaryHttpMessageHandler(PublicNetwork.CreateHandler);
         services.AddSingleton(new ChunkingOptions(
             configuration.GetValue("Ingestion:Chunking:TargetTokens", ChunkingOptions.Default.TargetTokens),
             configuration.GetValue("Ingestion:Chunking:OverlapTokens", ChunkingOptions.Default.OverlapTokens)));
@@ -42,6 +48,13 @@ public static class DependencyInjection
         if (configuration.GetValue("Ingestion:Enabled", defaultValue: true))
         {
             services.AddHostedService<IngestionWorker>();
+        }
+
+        services.AddSingleton<GenerationSignal>();
+        services.AddSingleton<IGenerationSignal>(sp => sp.GetRequiredService<GenerationSignal>());
+        if (configuration.GetValue("Generation:Enabled", defaultValue: true))
+        {
+            services.AddHostedService<GenerationWorker>();
         }
 
         return services;

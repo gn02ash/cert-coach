@@ -89,6 +89,9 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
         builder.UseSetting("Ingestion:Chunking:TargetTokens", "28");
         builder.UseSetting("Ingestion:Chunking:OverlapTokens", "0");
 
+        // Generation tests run jobs themselves, or start a worker in their own host, so hosts with different AI settings never race for a job.
+        builder.UseSetting("Generation:Enabled", "false");
+
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);

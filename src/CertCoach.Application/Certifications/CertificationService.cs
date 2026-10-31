@@ -67,8 +67,21 @@ public sealed class CertificationService(ICertCoachDbContext db, ICurrentUser us
                 throw new ConflictException("Archive the active study plan before changing this outline.");
             }
 
+            var oldTexts = Objectives(certification).ToDictionary(o => o.Id, o => Normalize(o.Text));
+            var items = await db.PracticeItems.Where(i => i.CertificationId == id && i.ObjectiveId != null).ToListAsync(ct);
+
             certification.ClearOutline();
             ApplyOutline(certification, request.Outline);
+
+            // New objectives get new IDs; practice items, and what was learned with them, follow their text.
+            var newIds = Objectives(certification)
+                .GroupBy(o => Normalize(o.Text))
+                .ToDictionary(g => g.Key, g => g.First().Id);
+            foreach (var item in items)
+            {
+                item.MoveToObjective(
+                    oldTexts.TryGetValue(item.ObjectiveId!.Value, out var text) && newIds.TryGetValue(text, out var newId) ? newId : null);
+            }
         }
 
         await db.SaveChangesAsync(ct);
@@ -137,6 +150,11 @@ public sealed class CertificationService(ICertCoachDbContext db, ICurrentUser us
             throw new DomainException("The outline needs at least one domain with objectives.");
         }
     }
+
+    private static IEnumerable<Objective> Objectives(Certification certification) =>
+        certification.Domains.SelectMany(d => d.SkillAreas).SelectMany(s => s.Objectives);
+
+    private static string Normalize(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant();
 
     private static bool SameOutline(Certification certification, IReadOnlyList<DomainDraft>? outline) =>
         Fingerprint(certification.Domains.Select(d => new DomainDraft(

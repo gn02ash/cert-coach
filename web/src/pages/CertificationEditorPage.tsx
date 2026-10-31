@@ -1,10 +1,29 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import type { CertificationDetail, CertificationStatus, DomainDraft, SaveCertificationRequest } from "../api/client";
-import { useAiStatus, useCertification, useParseOutline, useSaveCertification } from "../api/hooks";
+import type { CertificationDetail, CertificationStatus, DomainDraft, OutlineImport, SaveCertificationRequest } from "../api/client";
+import { useAiStatus, useCertification, useImportOutline, useParseOutline, useSaveCertification } from "../api/hooks";
 import { OutlineEditor } from "../components/OutlineEditor";
 import { Alert, Warnings } from "../components/ui";
 import sampleOutline from "../../../samples/DEMO-101-outline.md?raw";
+
+const importMethods: Record<OutlineImport["method"], string> = {
+  Parser: "Read by the parser",
+  Ai: "Read by the AI parser",
+  Agent: "Found by the AI agent",
+};
+
+/** Keeps what the learner typed; fills only empty fields, and the vendor while it is still the default. */
+function withImportedFacts(form: SaveCertificationRequest, imported: OutlineImport): SaveCertificationRequest {
+  return {
+    ...form,
+    outline: imported.draft.domains,
+    examCode: form.examCode || imported.examCode || "",
+    name: form.name || imported.name || "",
+    vendor: imported.vendor && (!form.vendor || form.vendor === emptyForm.vendor) ? imported.vendor : form.vendor,
+    outlineUrl: form.outlineUrl || imported.sourceUrl,
+    outlineVersionDate: form.outlineVersionDate || imported.outlineVersionDate,
+  };
+}
 
 const statuses: CertificationStatus[] = ["Active", "Beta", "Retired", "Replaced"];
 
@@ -42,11 +61,13 @@ export function CertificationEditorPage() {
   const existing = useCertification(id);
   const save = useSaveCertification(id);
   const parse = useParseOutline();
+  const importUrl = useImportOutline();
   const ai = useAiStatus();
   const navigate = useNavigate();
 
   const [form, setForm] = useState<SaveCertificationRequest>(emptyForm);
   const [pasted, setPasted] = useState("");
+  const [url, setUrl] = useState("");
   const [showPaste, setShowPaste] = useState(!id);
 
   useEffect(() => {
@@ -56,13 +77,26 @@ export function CertificationEditorPage() {
   const set = <K extends keyof SaveCertificationRequest>(key: K, value: SaveCertificationRequest[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const runParse = (text: string, withAi = false) =>
+  const runParse = (text: string, withAi = false) => {
+    importUrl.reset();
     parse.mutate({ text, ai: withAi }, {
       onSuccess: (draft) => {
         set("outline", draft.domains);
         if (draft.domains.length > 0) setShowPaste(false);
       },
     });
+  };
+
+  const runImport = () => {
+    if (!url.trim() || importUrl.isPending) return;
+    parse.reset();
+    importUrl.mutate(url.trim(), {
+      onSuccess: (imported) => {
+        setForm((f) => withImportedFacts(f, imported));
+        if (imported.draft.domains.length > 0) setShowPaste(false);
+      },
+    });
+  };
 
   const useSample = () => {
     setPasted(sampleOutline);
@@ -145,6 +179,33 @@ export function CertificationEditorPage() {
 
         {showPaste && (
           <div className="stack">
+            <div className="url-import">
+              <label className="grow">
+                Import from a URL
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Enter imports instead of submitting the certification form.
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      runImport();
+                    }
+                  }}
+                  placeholder="https://learn.microsoft.com/credentials/certifications/…"
+                />
+              </label>
+              <button type="button" className="button primary" disabled={!url.trim() || importUrl.isPending} onClick={runImport}>
+                {importUrl.isPending ? "Reading the site…" : "Import from URL"}
+              </button>
+            </div>
+            <p className="muted small">
+              An exam page, its study guide or an exam guide PDF. Cert Coach reads at most 5 pages on that site
+              {ai.data?.chatAvailable ? ", and an AI agent looks for the outline when the parser can't find it." : "."}
+            </p>
+            {importUrl.isPending && <p className="muted small">This can take a minute when the outline is a few links away.</p>}
+            <div className="divider-text">or paste it</div>
             <p className="muted small">
               Paste the "Skills measured" section of the exam's study guide. Domain lines need their weight, like "(15–20%)".
             </p>
@@ -171,6 +232,17 @@ export function CertificationEditorPage() {
           </div>
         )}
 
+        {importUrl.data && (
+          <p className="muted small" data-testid="import-summary">
+            {importMethods[importUrl.data.method]} from{" "}
+            <a href={importUrl.data.sourceUrl} target="_blank" rel="noreferrer">
+              {importUrl.data.sourceUrl}
+            </a>
+            {importUrl.data.pagesRead.length > 1 && ` after reading ${importUrl.data.pagesRead.length} pages`}.
+          </p>
+        )}
+        {importUrl.data && <Warnings warnings={importUrl.data.draft.warnings} />}
+        {importUrl.error && <Alert tone="error">{importUrl.error.message}</Alert>}
         {parse.data && <Warnings warnings={parse.data.warnings} />}
         {parse.error && <Alert tone="error">{parse.error.message}</Alert>}
 

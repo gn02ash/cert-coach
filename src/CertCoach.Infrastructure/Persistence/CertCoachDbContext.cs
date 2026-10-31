@@ -2,6 +2,7 @@ using CertCoach.Application.Abstractions;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
+using CertCoach.Domain.Practice;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +26,14 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
 
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
 
+    public DbSet<PracticeItem> PracticeItems => Set<PracticeItem>();
+
+    public DbSet<GenerationJob> GenerationJobs => Set<GenerationJob>();
+
+    public DbSet<ReviewLog> ReviewLogs => Set<ReviewLog>();
+
+    public DbSet<MockExam> MockExams => Set<MockExam>();
+
     private Guid? OwnerFilter => currentUser?.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,6 +46,10 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
         modelBuilder.Entity<StudyPlan>().HasQueryFilter(p => OwnerFilter == null || p.OwnerId == OwnerFilter);
         modelBuilder.Entity<Document>().HasQueryFilter(d => OwnerFilter == null || d.OwnerId == OwnerFilter);
         modelBuilder.Entity<DocumentChunk>().HasQueryFilter(c => OwnerFilter == null || c.OwnerId == OwnerFilter);
+        modelBuilder.Entity<PracticeItem>().HasQueryFilter(i => OwnerFilter == null || i.OwnerId == OwnerFilter);
+        modelBuilder.Entity<GenerationJob>().HasQueryFilter(j => OwnerFilter == null || j.OwnerId == OwnerFilter);
+        modelBuilder.Entity<ReviewLog>().HasQueryFilter(r => OwnerFilter == null || r.OwnerId == OwnerFilter);
+        modelBuilder.Entity<MockExam>().HasQueryFilter(e => OwnerFilter == null || e.OwnerId == OwnerFilter);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

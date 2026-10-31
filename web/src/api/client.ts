@@ -15,6 +15,7 @@ export type CertificationStatus = Schemas["CertificationStatus"];
 export type SaveCertificationRequest = Schemas["SaveCertificationRequest"];
 export type OutlineDraft = Schemas["OutlineDraft"];
 export type DomainDraft = Schemas["DomainDraft"];
+export type OutlineImport = Schemas["OutlineImport"];
 export type PlanRequest = Schemas["PlanRequest"];
 export type PlanPreview = Schemas["PlanPreview"];
 export type PlanView = Schemas["PlanView"];
@@ -29,6 +30,22 @@ export type SearchResponse = Schemas["SearchResponse"];
 export type SearchHit = Schemas["SearchHit"];
 export type AskRequest = Schemas["AskRequest"];
 export type AskTurn = Schemas["AskTurn"];
+export type PracticeItemView = Schemas["PracticeItemView"];
+export type PracticeItemStatus = Schemas["PracticeItemStatus"];
+export type CreatePracticeItemRequest = Schemas["CreatePracticeItemRequest"];
+export type GenerationJobView = Schemas["GenerationJobView"];
+export type GenerateItemsRequest = Schemas["GenerateItemsRequest"];
+export type ReviewSet = Schemas["ReviewSet"];
+export type ReviewCard = Schemas["ReviewCard"];
+export type ReviewGrade = Schemas["ReviewGrade"];
+export type ReviewSource = Schemas["ReviewSource"];
+export type AnswerRequest = Schemas["AnswerRequest"];
+export type AnswerResult = Schemas["AnswerResult"];
+export type MockExamView = Schemas["MockExamView"];
+export type MockQuestionView = Schemas["MockQuestionView"];
+export type MockExamSummary = Schemas["MockExamSummary"];
+export type StartMockExamRequest = Schemas["StartMockExamRequest"];
+export type ReadinessReport = Schemas["ReadinessReport"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {
