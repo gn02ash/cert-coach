@@ -92,6 +92,20 @@ public class QuotedAnswerTests
     }
 
     [Fact]
+    public void Never_quotes_a_subheading_together_with_the_next_paragraph()
+    {
+        var answer = QuotedAnswer.Build(
+            "Why do scanned PDFs need OCR?",
+            [Source(1, "Extracting text from PDFs\n\nScanned PDFs are only images and need OCR first. Other files have a text layer.")]);
+
+        answer.ShouldBe("""
+            From your materials:
+
+            - "Scanned PDFs are only images and need OCR first." [1]
+            """.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
     public void Says_so_when_no_sentence_shares_a_word()
     {
         QuotedAnswer.Build("What is the quota?", [Source(1, "Completely unrelated text.")]).ShouldStartWith("These passages look related");
