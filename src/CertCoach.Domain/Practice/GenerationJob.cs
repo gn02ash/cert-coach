@@ -54,6 +54,7 @@ public sealed class GenerationJob
 
     /// <summary>Set when claimed and after each objective. A running job silent for long belongs to a stopped worker.</summary>
     public DateTimeOffset? HeartbeatAt { get; private set; }
+
     public DateTimeOffset? FinishedAt { get; private set; }
 
     public bool IsActive => Status is GenerationStatus.Queued or GenerationStatus.Running;

@@ -10,7 +10,7 @@ const shot = (page: Page, name: string) => page.screenshot({ path: `e2e-screensh
 test("generate practice items, review them and take a mock exam", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("link", { name: "Local dev login" }).click();
-  await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Today", exact: true })).toBeVisible();
 
   await page.goto("/certifications");
   await page.getByRole("link", { name: "Practice items" }).first().click();
