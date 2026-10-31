@@ -53,6 +53,9 @@ export function CertificationsPage() {
                   Create plan
                 </Link>
               )}
+              <Link className="button ghost small" to={`/certifications/${c.id}/practice`}>
+                Practice items
+              </Link>
               <Link className="button ghost small" to={`/certifications/${c.id}`}>
                 Edit
               </Link>

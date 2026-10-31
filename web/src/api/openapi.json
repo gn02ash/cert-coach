@@ -955,6 +955,184 @@
           }
         }
       }
+    },
+    "/api/practice/items": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "A certification's practice questions and flashcards, optionally for one objective.",
+        "operationId": "ListPracticeItems",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "objectiveId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PracticeItemView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Write your own question or flashcard.",
+        "operationId": "CreatePracticeItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePracticeItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/practice/items/{id}": {
+      "put": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Edit an item. Its review schedule is kept.",
+        "operationId": "UpdatePracticeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePracticeItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "DeletePracticeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/practice/items/{id}/status": {
+      "put": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "Suspend an item to leave it out of reviews and exams, or make it active again.",
+        "operationId": "SetPracticeItemStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPracticeItemStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeItemView"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1205,6 +1383,59 @@
           }
         }
       },
+      "CreatePracticeItemRequest": {
+        "required": [
+          "certificationId",
+          "objectiveId",
+          "kind",
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
       "DashboardView": {
         "required": [
           "today",
@@ -1424,6 +1655,37 @@
         "properties": {
           "url": {
             "type": "string"
+          }
+        }
+      },
+      "ItemSourceView": {
+        "required": [
+          "documentId",
+          "documentTitle",
+          "page",
+          "quote"
+        ],
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quote": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1891,6 +2153,118 @@
           "NoStudySlots"
         ]
       },
+      "PracticeItemKind": {
+        "enum": [
+          "SingleChoice",
+          "MultipleChoice",
+          "Flashcard"
+        ]
+      },
+      "PracticeItemOrigin": {
+        "enum": [
+          "Documents",
+          "ModelKnowledge",
+          "Manual"
+        ]
+      },
+      "PracticeItemStatus": {
+        "enum": [
+          "Active",
+          "Suspended"
+        ]
+      },
+      "PracticeItemView": {
+        "required": [
+          "id",
+          "certificationId",
+          "objectiveId",
+          "objectiveText",
+          "kind",
+          "origin",
+          "status",
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer",
+          "sources",
+          "dueOn",
+          "repetitions",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "objectiveText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PracticeItemKind"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/PracticeItemOrigin"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PracticeItemStatus"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemSourceView"
+            }
+          },
+          "dueOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "repetitions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "SaveCertificationRequest": {
         "required": [
           "examCode",
@@ -2160,6 +2534,17 @@
           }
         }
       },
+      "SetPracticeItemStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PracticeItemStatus"
+          }
+        }
+      },
       "SkillAreaDraft": {
         "required": [
           "name",
@@ -2256,6 +2641,42 @@
           }
         }
       },
+      "UpdatePracticeItemRequest": {
+        "required": [
+          "prompt",
+          "options",
+          "correctOptions",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctOptions": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
       "UserProfile": {
         "required": [
           "id",
@@ -2309,6 +2730,9 @@
     },
     {
       "name": "Documents"
+    },
+    {
+      "name": "Practice"
     }
   ]
 }
