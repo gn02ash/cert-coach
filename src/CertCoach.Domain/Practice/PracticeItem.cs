@@ -201,6 +201,49 @@ public sealed class PracticeItem
 
     public void SetStatus(PracticeItemStatus status) => Status = status;
 
+    /// <summary>Records a flashcard review graded by the learner and reschedules the card.</summary>
+    public ReviewLog Grade(ReviewGrade grade, ReviewSource source, DateOnly today, DateTimeOffset now)
+    {
+        if (Kind != PracticeItemKind.Flashcard)
+        {
+            throw new DomainException("Questions are graded by the answer, not by the learner.");
+        }
+
+        return Reschedule(grade, correct: null, selected: null, source, today, now);
+    }
+
+    /// <summary>Checks an answer to a question and reschedules it: correct counts as Good, wrong as Again.</summary>
+    public ReviewLog Submit(IReadOnlyList<int> selected, ReviewSource source, DateOnly today, DateTimeOffset now)
+    {
+        if (Kind == PracticeItemKind.Flashcard)
+        {
+            throw new DomainException("A flashcard has no options to choose.");
+        }
+
+        if (selected.Count == 0 || selected.Any(i => i < 0 || i >= _options.Count))
+        {
+            throw new DomainException("Choose one of the options.");
+        }
+
+        var correct = IsCorrect(selected);
+        return Reschedule(correct ? ReviewGrade.Good : ReviewGrade.Again, correct, selected, source, today, now);
+    }
+
+    /// <summary>The interval each grade would set, for the buttons of a flashcard.</summary>
+    public int IntervalAfter(ReviewGrade grade) => Sm2.Next(State, grade).IntervalDays;
+
+    private Sm2State State => new(EaseFactor, IntervalDays, Repetitions, Lapses);
+
+    private ReviewLog Reschedule(ReviewGrade grade, bool? correct, IReadOnlyList<int>? selected, ReviewSource source, DateOnly today, DateTimeOffset now)
+    {
+        var wasNew = IsNew;
+        var next = Sm2.Next(State, grade);
+        (EaseFactor, IntervalDays, Repetitions, Lapses) = (next.EaseFactor, next.IntervalDays, next.Repetitions, next.Lapses);
+        DueOn = today.AddDays(next.IntervalDays);
+        LastReviewedAt = now;
+        return ReviewLog.For(this, source, grade, correct, selected, wasNew, today, now);
+    }
+
     /// <summary>After the outline is replaced, moves the item to the objective with the same text, or to none.</summary>
     public void MoveToObjective(Guid? objectiveId) => ObjectiveId = objectiveId;
 

@@ -680,6 +680,82 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("practice_items", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Practice.ReviewLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.Property<bool?>("Correct")
+                        .HasColumnType("boolean")
+                        .HasColumnName("correct");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("grade");
+
+                    b.Property<int>("IntervalDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("interval_days");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<DateOnly>("ReviewedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("reviewed_on");
+
+                    b.PrimitiveCollection<int[]>("SelectedOptions")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("selected_options");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("source");
+
+                    b.Property<bool>("WasNew")
+                        .HasColumnType("boolean")
+                        .HasColumnName("was_new");
+
+                    b.HasKey("Id")
+                        .HasName("pk_review_logs");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_review_logs_item_id");
+
+                    b.HasIndex("CertificationId", "ReviewedAt")
+                        .HasDatabaseName("ix_review_logs_certification_id_reviewed_at");
+
+                    b.HasIndex("OwnerId", "ReviewedOn")
+                        .HasDatabaseName("ix_review_logs_owner_id_reviewed_on");
+
+                    b.ToTable("review_logs", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -834,6 +910,16 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ObjectiveId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_practice_items_objectives_objective_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Practice.ReviewLog", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Practice.PracticeItem", null)
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_review_logs_practice_items_item_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>

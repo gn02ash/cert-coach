@@ -11,6 +11,7 @@ import { NewPlanPage } from "./pages/NewPlanPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlanPage } from "./pages/PlanPage";
 import { PracticeItemsPage } from "./pages/PracticeItemsPage";
+import { ReviewPage } from "./pages/ReviewPage";
 import { SearchPage } from "./pages/SearchPage";
 
 export const router = createBrowserRouter([
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { path: "certifications/:id/plan", element: <NewPlanPage /> },
       { path: "certifications/:id/practice", element: <PracticeItemsPage /> },
       { path: "plans/:id", element: <PlanPage /> },
+      { path: "review", element: <ReviewPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "ask", element: <AskPage /> },

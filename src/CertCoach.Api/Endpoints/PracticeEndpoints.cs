@@ -39,6 +39,21 @@ internal static class PracticeEndpoints
             })
             .WithName("DeletePracticeItem");
 
+        var review = api.MapGroup("/review").WithTags("Review");
+
+        review.MapGet("/", (Guid? certificationId, ReviewService service, CancellationToken ct) => service.GetQueueAsync(certificationId, ct))
+            .WithName("GetReviewQueue")
+            .WithSummary("Today's items: everything due, then new items up to the daily limit.");
+
+        review.MapGet("/quiz", (Guid[] objectiveIds, ReviewService service, CancellationToken ct) => service.GetQuizAsync(objectiveIds, ct))
+            .WithName("GetQuiz")
+            .WithSummary("A short quiz on the given objectives, such as a study session's.");
+
+        review.MapPost("/items/{id:guid}/answer", (Guid id, AnswerRequest request, ReviewService service, CancellationToken ct) =>
+                service.AnswerAsync(id, request, ct))
+            .WithName("AnswerItem")
+            .WithSummary("Answer a question or grade a flashcard. Returns the answer and when the item comes back.");
+
         var runs = api.MapGroup("/practice/generations").WithTags("Practice");
 
         runs.MapPost("/", async (GenerateItemsRequest request, GenerationService service, CancellationToken ct) =>
