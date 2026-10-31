@@ -15,6 +15,7 @@ export type CertificationStatus = Schemas["CertificationStatus"];
 export type SaveCertificationRequest = Schemas["SaveCertificationRequest"];
 export type OutlineDraft = Schemas["OutlineDraft"];
 export type DomainDraft = Schemas["DomainDraft"];
+export type OutlineImport = Schemas["OutlineImport"];
 export type PlanRequest = Schemas["PlanRequest"];
 export type PlanPreview = Schemas["PlanPreview"];
 export type PlanView = Schemas["PlanView"];

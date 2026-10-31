@@ -183,6 +183,38 @@
         }
       }
     },
+    "/api/outlines/import-url": {
+      "post": {
+        "tags": [
+          "Certifications"
+        ],
+        "summary": "Create an outline draft from an exam page, study guide or exam guide PDF.",
+        "description": "Reads at most 5 public pages on the same site. Without a chat provider, only outlines the parser can read are found.",
+        "operationId": "ImportOutlineFromUrl",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportOutlineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlineImport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboard": {
       "get": {
         "tags": [
@@ -1384,6 +1416,17 @@
         "type": "string",
         "format": "binary"
       },
+      "ImportOutlineRequest": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
       "ObjectiveView": {
         "required": [
           "id",
@@ -1424,6 +1467,70 @@
             "format": "int32"
           }
         }
+      },
+      "OutlineImport": {
+        "required": [
+          "draft",
+          "sourceUrl",
+          "examCode",
+          "name",
+          "vendor",
+          "outlineVersionDate",
+          "pagesRead",
+          "method"
+        ],
+        "type": "object",
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/OutlineDraft"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "examCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "vendor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outlineVersionDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "pagesRead": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "method": {
+            "$ref": "#/components/schemas/OutlineImportMethod"
+          }
+        }
+      },
+      "OutlineImportMethod": {
+        "enum": [
+          "Parser",
+          "Ai",
+          "Agent"
+        ]
       },
       "ParseOutlineRequest": {
         "required": [
