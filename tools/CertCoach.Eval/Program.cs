@@ -1,9 +1,11 @@
 // Retrieval evaluation: typesets the synthetic corpus in eval/corpus as PDFs, ingests them through the real
 // pipeline (extraction, chunking, embeddings, PostgreSQL), runs every question in eval/questions.jsonl in
-// each search mode, and reports recall@k, MRR and how well the "not in your materials" gate works.
+// each search mode, and reports recall@k, MRR and how well the "not in your materials" gate works. It also
+// writes offline practice items for the sample outline's objectives and checks every one is grounded.
 //
 //   dotnet run --project tools/CertCoach.Eval -- [--connection <postgres>] [--out <file.md>]
-//                                               [--min-recall5 <0..1>] [--min-mrr <0..1>] [--chunk-tokens <n>]
+//                                               [--min-recall5 <0..1>] [--min-mrr <0..1>] [--min-grounded <0..1>]
+//                                               [--chunk-tokens <n>]
 //   dotnet run --project tools/CertCoach.Eval -- --dry-run     (chunk the corpus and check the labels; no database)
 //   dotnet run --project tools/CertCoach.Eval -- --export <dir> (write the corpus PDFs, e.g. to try the app with)
 //
@@ -95,7 +97,8 @@ try
 
     var documents = await Corpus.IngestAsync(services, userId, Path.Combine(root, "eval", "corpus"));
     var result = await Evaluator.RunAsync(services, questions, documents);
-    var report = Report.Markdown(result, capabilities, chunking);
+    var generation = await GenerationCheck.RunAsync(services, root);
+    var report = Report.Markdown(result, capabilities, chunking) + Report.Generation(generation);
 
     Console.WriteLine(report);
     if (options.Out is { } outPath)
@@ -114,6 +117,11 @@ try
     if (options.MinMrr is { } minMrr && hybrid.Mrr < minMrr)
     {
         failures.Add($"Hybrid MRR@10 {hybrid.Mrr:F2} is below {minMrr:F2}.");
+    }
+
+    if (options.MinGrounded is { } minGrounded && generation.GroundedShare < minGrounded)
+    {
+        failures.Add($"Only {generation.GroundedShare:P0} of generated items are grounded in their passage; the minimum is {minGrounded:P0}.");
     }
 
     failures.ForEach(Console.Error.WriteLine);
@@ -148,7 +156,7 @@ static string RepositoryRoot()
 namespace CertCoach.Eval
 {
     internal sealed record EvalOptions(
-        string? Connection, string? Out, double? MinRecall5, double? MinMrr, int? ChunkTokens, bool DryRun, string? Export)
+        string? Connection, string? Out, double? MinRecall5, double? MinMrr, double? MinGrounded, int? ChunkTokens, bool DryRun, string? Export)
     {
         public static EvalOptions Parse(string[] args)
         {
@@ -165,6 +173,7 @@ namespace CertCoach.Eval
                 Value("--out"),
                 Number("--min-recall5"),
                 Number("--min-mrr"),
+                Number("--min-grounded"),
                 Value("--chunk-tokens") is { } c ? int.Parse(c, CultureInfo.InvariantCulture) : null,
                 args.Contains("--dry-run"),
                 Value("--export"));

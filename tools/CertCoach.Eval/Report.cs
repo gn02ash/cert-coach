@@ -10,6 +10,21 @@ internal static class Report
 {
     private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
 
+    public static string Generation(GenerationResult generation)
+    {
+        var md = new StringBuilder().AppendLine().AppendLine("## Question generation (offline)").AppendLine();
+        md.AppendLine("Fill-in-the-blank items written from the corpus for each objective of the DEMO-101 sample outline, as a generation run does without a chat model. An item is grounded when its prompt is the quoted sentence with the answer blanked out and that sentence is in the passage it cites.").AppendLine();
+        md.AppendLine("| Objectives | Covered by the corpus | Items | Of which questions | Grounded |");
+        md.AppendLine("|---:|---:|---:|---:|---:|");
+        md.AppendLine(Invariant, $"| {generation.Objectives} | {generation.Covered} | {generation.Items} | {generation.Questions} | {Percent(generation.GroundedShare)} |");
+        foreach (var prompt in generation.Ungrounded)
+        {
+            md.AppendLine(Invariant, $"- Not grounded: {prompt}");
+        }
+
+        return md.ToString();
+    }
+
     public static string Markdown(EvalResult result, AiCapabilities capabilities, ChunkingOptions chunking)
     {
         var md = new StringBuilder();
