@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { PlanDashboard } from "../api/client";
 import { useDashboard, useRescheduleOverdue } from "../api/hooks";
+import { ReadinessCard } from "../components/ReadinessCard";
 import { SessionCard } from "../components/SessionCard";
 import { EmptyState, KindBadge, ProgressBar, ShortfallNotice } from "../components/ui";
 import { formatDay, formatLongDate } from "../lib/dates";
@@ -125,6 +126,8 @@ function PlanSection({ plan }: { plan: PlanDashboard }) {
             ))}
           </ul>
         </div>
+
+        <ReadinessCard certificationId={plan.certificationId} />
 
         <div className="card span-2">
           <h3 className="card-title">Next 7 days</h3>
