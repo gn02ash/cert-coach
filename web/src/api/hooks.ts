@@ -8,6 +8,7 @@ import {
   type DashboardView,
   type DocumentSummary,
   type OutlineDraft,
+  type OutlineImport,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -76,6 +77,9 @@ export const useParseOutline = () =>
     mutationFn: ({ text, ai }: { text: string; ai?: boolean }) =>
       api<OutlineDraft>(ai ? "/api/outlines/parse-ai" : "/api/outlines/parse", "POST", { text }),
   });
+
+export const useImportOutline = () =>
+  useMutation({ mutationFn: (url: string) => api<OutlineImport>("/api/outlines/import-url", "POST", { url }) });
 
 export function useSaveCertification(id: string | undefined) {
   const client = useQueryClient();

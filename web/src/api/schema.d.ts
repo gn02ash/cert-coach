@@ -118,6 +118,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/outlines/import-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an outline draft from an exam page, study guide or exam guide PDF.
+         * @description Reads at most 5 public pages on the same site. Without a chat provider, only outlines the parser can read are found.
+         */
+        post: operations["ImportOutlineFromUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard": {
         parameters: {
             query?: never;
@@ -528,6 +548,9 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        ImportOutlineRequest: {
+            url: string;
+        };
         ObjectiveView: {
             /** Format: uuid */
             id: string;
@@ -539,6 +562,20 @@ export interface components {
             /** Format: int32 */
             objectiveCount?: number;
         };
+        OutlineImport: {
+            draft: components["schemas"]["OutlineDraft"];
+            /** Format: uri */
+            sourceUrl: string;
+            examCode: null | string;
+            name: null | string;
+            vendor: null | string;
+            /** Format: date */
+            outlineVersionDate: null | string;
+            pagesRead: string[];
+            method: components["schemas"]["OutlineImportMethod"];
+        };
+        /** @enum {unknown} */
+        OutlineImportMethod: "Parser" | "Ai" | "Agent";
         ParseOutlineRequest: {
             text: string;
         };
@@ -900,6 +937,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OutlineDraft"];
+                };
+            };
+        };
+    };
+    ImportOutlineFromUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportOutlineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineImport"];
                 };
             };
         };

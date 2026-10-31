@@ -1,4 +1,6 @@
 using System.ClientModel;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Anthropic;
 using CertCoach.Application.Ai;
 using Microsoft.Extensions.AI;
@@ -88,9 +90,49 @@ internal static class AiSetup
                     MaxTokens = maxTokens,
                     Fallbacks = new BetaParams.Default(),
                     Betas = [ServerSideFallbackBeta],
+                    // The adapter doesn't map ChatOptions.ResponseFormat, so structured output is set here.
+                    OutputConfig = o.ResponseFormat is ChatResponseFormatJson { Schema: { } schema }
+                        ? new BetaParams.BetaOutputConfig { Format = new BetaParams.BetaJsonOutputFormat { Schema = StrictSchema(schema) } }
+                        : null,
                 };
             })
             .Build();
+    }
+
+    /// <summary>Claude's structured outputs need every object closed to extra properties.</summary>
+    internal static Dictionary<string, JsonElement> StrictSchema(JsonElement schema)
+    {
+        static JsonNode? Close(JsonNode? node)
+        {
+            switch (node)
+            {
+                case JsonObject obj:
+                    obj.Remove("$schema");
+                    foreach (var (_, child) in obj.ToList())
+                    {
+                        Close(child);
+                    }
+
+                    if (obj.ContainsKey("properties"))
+                    {
+                        obj["additionalProperties"] = false;
+                    }
+
+                    break;
+                case JsonArray array:
+                    foreach (var child in array)
+                    {
+                        Close(child);
+                    }
+
+                    break;
+            }
+
+            return node;
+        }
+
+        var closed = Close(JsonNode.Parse(schema.GetRawText()))!.AsObject();
+        return closed.ToDictionary(p => p.Key, p => JsonSerializer.SerializeToElement(p.Value));
     }
 
     private static IEmbeddingGenerator<string, Embedding<float>> CreateEmbeddingGenerator(AiOptions.EmbeddingOptions embeddings)
