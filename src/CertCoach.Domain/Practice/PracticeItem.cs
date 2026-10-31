@@ -220,7 +220,8 @@ public sealed class PracticeItem
             throw new DomainException("A flashcard has no options to choose.");
         }
 
-        if (selected.Count == 0 || selected.Any(i => i < 0 || i >= _options.Count))
+        // A question left blank in a mock exam is answered wrong; anywhere else, an answer is needed.
+        if ((selected.Count == 0 && source != ReviewSource.MockExam) || selected.Any(i => i < 0 || i >= _options.Count))
         {
             throw new DomainException("Choose one of the options.");
         }

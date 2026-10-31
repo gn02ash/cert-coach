@@ -55,9 +55,14 @@ export function PracticeItemsPage() {
     <div className="stack">
       <div className="page-head">
         <h1>{certification.data.examCode} practice items</h1>
-        <Link to="/certifications" className="button ghost">
-          Back
-        </Link>
+        <div className="actions">
+          <Link to={`/mock-exams/new?certificationId=${id}`} className="button ghost">
+            Take a mock exam
+          </Link>
+          <Link to="/certifications" className="button ghost">
+            Back
+          </Link>
+        </div>
       </div>
       <p className="muted">
         {plural(all.length, "item")} · {active} active · {all.filter((i) => i.dueOn === null).length} not reviewed yet

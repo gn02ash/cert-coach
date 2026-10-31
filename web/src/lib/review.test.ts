@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatInterval, toggleOption } from "./review";
+import { formatClock, formatInterval, toggleOption } from "./review";
 
 describe("formatInterval", () => {
   it.each([
@@ -21,5 +21,16 @@ describe("toggleOption", () => {
   it("toggles choices on multiple-answer questions", () => {
     expect(toggleOption([3], 1, 2)).toEqual([1, 3]);
     expect(toggleOption([1, 3], 3, 2)).toEqual([1]);
+  });
+});
+
+describe("formatClock", () => {
+  it.each([
+    [0, "0:00"],
+    [245, "4:05"],
+    [3729, "1:02:09"],
+    [-5, "0:00"],
+  ])("formats %i seconds as %s", (seconds, text) => {
+    expect(formatClock(seconds)).toBe(text);
   });
 });

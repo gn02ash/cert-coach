@@ -12,6 +12,8 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlanPage } from "./pages/PlanPage";
 import { PracticeItemsPage } from "./pages/PracticeItemsPage";
 import { ReviewPage } from "./pages/ReviewPage";
+import { MockExamPage } from "./pages/MockExamPage";
+import { MockExamStartPage } from "./pages/MockExamStartPage";
 import { SearchPage } from "./pages/SearchPage";
 
 export const router = createBrowserRouter([
@@ -31,6 +33,8 @@ export const router = createBrowserRouter([
       { path: "certifications/:id/practice", element: <PracticeItemsPage /> },
       { path: "plans/:id", element: <PlanPage /> },
       { path: "review", element: <ReviewPage /> },
+      { path: "mock-exams/new", element: <MockExamStartPage /> },
+      { path: "mock-exams/:id", element: <MockExamPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "ask", element: <AskPage /> },

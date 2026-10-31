@@ -31,6 +31,8 @@ public interface ICertCoachDbContext
 
     DbSet<ReviewLog> ReviewLogs { get; }
 
+    DbSet<MockExam> MockExams { get; }
+
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }
 

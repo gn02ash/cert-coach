@@ -568,6 +568,69 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("generation_jobs", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Practice.MockExam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Answers")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("answers");
+
+                    b.Property<Guid>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.Property<int?>("CorrectCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("correct_count");
+
+                    b.Property<DateTimeOffset>("Deadline")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deadline");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_minutes");
+
+                    b.PrimitiveCollection<Guid[]>("ItemIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("item_ids");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mock_exams");
+
+                    b.HasIndex("CertificationId", "Status")
+                        .HasDatabaseName("ix_mock_exams_certification_id_status");
+
+                    b.ToTable("mock_exams", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -894,6 +957,16 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_generation_jobs_certifications_certification_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Practice.MockExam", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Certifications.Certification", null)
+                        .WithMany()
+                        .HasForeignKey("CertificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_mock_exams_certifications_certification_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Practice.PracticeItem", b =>

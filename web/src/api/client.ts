@@ -41,6 +41,10 @@ export type ReviewGrade = Schemas["ReviewGrade"];
 export type ReviewSource = Schemas["ReviewSource"];
 export type AnswerRequest = Schemas["AnswerRequest"];
 export type AnswerResult = Schemas["AnswerResult"];
+export type MockExamView = Schemas["MockExamView"];
+export type MockQuestionView = Schemas["MockQuestionView"];
+export type MockExamSummary = Schemas["MockExamSummary"];
+export type StartMockExamRequest = Schemas["StartMockExamRequest"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

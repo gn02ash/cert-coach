@@ -25,7 +25,16 @@ export function SessionCard({ planId, session }: { planId: string; session: Sess
         </ul>
       )}
       {session.objectives.length === 1 && <p className="muted small">{session.objectives[0]!.skillArea}</p>}
-      {session.kind === "MockExam" && <p className="muted small">Timed practice across every domain.</p>}
+      {session.kind === "MockExam" && (
+        <div className="session-links">
+          <span className="muted small">Timed practice across every domain.</span>
+          {session.status === "Planned" && session.id && (
+            <Link className="small" to={`/mock-exams/new?sessionId=${session.id}`}>
+              Start mock exam
+            </Link>
+          )}
+        </div>
+      )}
       {session.objectives.length > 0 && (
         <div className="session-links">
           <Link className="small" to={`/search?q=${encodeURIComponent(session.objectives.map((o) => o.text).join(" "))}`}>

@@ -8,6 +8,7 @@ using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Application.Plans;
 using CertCoach.Application.Practice;
+using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
 using CertCoach.Application.Search;
 using CertCoach.Application.Users;
@@ -29,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();
         services.AddScoped<ReviewService>();
+        services.AddScoped<MockExamService>();
         services.AddScoped<AiItemWriter>();
         services.AddScoped<ItemGenerator>();
         services.AddScoped<GenerationService>();

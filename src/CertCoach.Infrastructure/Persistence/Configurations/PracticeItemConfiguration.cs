@@ -101,3 +101,35 @@ internal sealed class ReviewLogConfiguration : IEntityTypeConfiguration<ReviewLo
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+internal sealed class MockExamConfiguration : IEntityTypeConfiguration<MockExam>
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    public void Configure(EntityTypeBuilder<MockExam> builder)
+    {
+        builder.ToTable("mock_exams");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedNever();
+        builder.Property(e => e.Status).HasConversion<string>().HasMaxLength(16);
+        builder.PrimitiveCollection(e => e.ItemIds).HasField("_itemIds").UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Property(e => e.Answers)
+            .HasField("_answers")
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, Json),
+                v => JsonSerializer.Deserialize<List<MockAnswer>>(v, Json) ?? new List<MockAnswer>(),
+                new ValueComparer<IReadOnlyList<MockAnswer>>(
+                    (a, b) => ReferenceEquals(a, b),
+                    v => v.Count,
+                    v => v.ToList()));
+
+        builder.HasIndex(e => new { e.CertificationId, e.Status });
+
+        builder.HasOne<Certification>()
+            .WithMany()
+            .HasForeignKey(e => e.CertificationId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
