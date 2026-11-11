@@ -46,6 +46,8 @@ export type MockQuestionView = Schemas["MockQuestionView"];
 export type MockExamSummary = Schemas["MockExamSummary"];
 export type StartMockExamRequest = Schemas["StartMockExamRequest"];
 export type ReadinessReport = Schemas["ReadinessReport"];
+export type ActivityView = Schemas["ActivityView"];
+export type ActivityDay = Schemas["ActivityDay"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

@@ -235,6 +235,37 @@
         }
       }
     },
+    "/api/activity": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Reviews and completed sessions per day in your time zone, with your current and longest study streak.",
+        "operationId": "GetActivity",
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ai/status": {
       "get": {
         "tags": [
@@ -1622,6 +1653,61 @@
   },
   "components": {
     "schemas": {
+      "ActivityDay": {
+        "required": [
+          "date",
+          "reviews",
+          "sessions"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessions": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ActivityView": {
+        "required": [
+          "today",
+          "streak",
+          "reviewsThisWeek",
+          "sessionsThisWeek",
+          "days"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "streak": {
+            "$ref": "#/components/schemas/Streak"
+          },
+          "reviewsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDay"
+            }
+          }
+        }
+      },
       "AiCapabilities": {
         "required": [
           "chatProvider",
@@ -3853,6 +3939,27 @@
             "type": "integer",
             "format": "int32",
             "default": 60
+          }
+        }
+      },
+      "Streak": {
+        "required": [
+          "current",
+          "longest",
+          "studiedToday"
+        ],
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "longest": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "studiedToday": {
+            "type": "boolean"
           }
         }
       },

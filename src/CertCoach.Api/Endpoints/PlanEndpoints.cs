@@ -1,3 +1,4 @@
+using CertCoach.Application.Activity;
 using CertCoach.Application.Dashboard;
 using CertCoach.Application.Plans;
 
@@ -10,6 +11,11 @@ internal static class PlanEndpoints
         api.MapGet("/dashboard", (DashboardService service, CancellationToken ct) => service.GetAsync(ct))
             .WithName("GetDashboard")
             .WithTags("Dashboard");
+
+        api.MapGet("/activity", (int? weeks, ActivityService service, CancellationToken ct) => service.GetAsync(weeks ?? ActivityService.DefaultWeeks, ct))
+            .WithName("GetActivity")
+            .WithTags("Dashboard")
+            .WithSummary("Reviews and completed sessions per day in your time zone, with your current and longest study streak.");
 
         var group = api.MapGroup("/plans").WithTags("Plans");
 
