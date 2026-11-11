@@ -11,6 +11,7 @@ import {
   type OutlineImport,
   type CreatePracticeItemRequest,
   type PracticeItemStatus,
+  type UpdatePracticeItemRequest,
   type PracticeItemView,
   type GenerateItemsRequest,
   type GenerationJobView,
@@ -205,6 +206,15 @@ export function useCreatePracticeItem() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (request: CreatePracticeItemRequest) => api<PracticeItemView>("/api/practice/items", "POST", request),
+    onSuccess: (item) => client.invalidateQueries({ queryKey: keys.practiceItems(item.certificationId) }),
+  });
+}
+
+export function useUpdatePracticeItem() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: UpdatePracticeItemRequest }) =>
+      api<PracticeItemView>(`/api/practice/items/${id}`, "PUT", request),
     onSuccess: (item) => client.invalidateQueries({ queryKey: keys.practiceItems(item.certificationId) }),
   });
 }

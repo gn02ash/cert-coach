@@ -33,6 +33,7 @@ export type AskTurn = Schemas["AskTurn"];
 export type PracticeItemView = Schemas["PracticeItemView"];
 export type PracticeItemStatus = Schemas["PracticeItemStatus"];
 export type CreatePracticeItemRequest = Schemas["CreatePracticeItemRequest"];
+export type UpdatePracticeItemRequest = Schemas["UpdatePracticeItemRequest"];
 export type GenerationJobView = Schemas["GenerationJobView"];
 export type GenerateItemsRequest = Schemas["GenerateItemsRequest"];
 export type ReviewSet = Schemas["ReviewSet"];
