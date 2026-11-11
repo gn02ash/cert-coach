@@ -96,7 +96,7 @@ function PlanSection({ plan }: { plan: PlanDashboard }) {
           ) : (
             <div className="stack">
               {todays.map((s) => (
-                <SessionCard key={s.id} planId={plan.planId} session={s} />
+                <SessionCard key={s.id} planId={plan.planId} session={s} certificationId={plan.certificationId} />
               ))}
             </div>
           )}

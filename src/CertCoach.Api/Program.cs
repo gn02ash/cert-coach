@@ -70,6 +70,7 @@ app.MapGroup("/api")
     .MapDocumentEndpoints()
     .MapPracticeEndpoints()
     .MapCareerEndpoints()
+    .MapResourceEndpoints()
     .MapSearchEndpoints()
     .MapAskEndpoints();
 

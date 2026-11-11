@@ -3,6 +3,7 @@ using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
 using CertCoach.Domain.Practice;
+using CertCoach.Domain.Resources;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -35,6 +36,8 @@ public interface ICertCoachDbContext
     DbSet<MockExam> MockExams { get; }
 
     DbSet<CareerProfile> CareerProfiles { get; }
+
+    DbSet<StudyResource> StudyResources { get; }
 
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }

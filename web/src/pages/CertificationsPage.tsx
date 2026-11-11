@@ -56,6 +56,9 @@ export function CertificationsPage() {
               <Link className="button ghost small" to={`/certifications/${c.id}/practice`}>
                 Practice items
               </Link>
+              <Link className="button ghost small" to={`/certifications/${c.id}/resources`}>
+                Resources
+              </Link>
               <Link className="button ghost small" to={`/certifications/${c.id}`}>
                 Edit
               </Link>
