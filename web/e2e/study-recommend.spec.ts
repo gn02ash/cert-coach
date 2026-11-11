@@ -35,6 +35,8 @@ test("read the sample CV, save the profile and get recommendations", async ({ pa
   await expect(cards.first()).toContainText("You already know:");
   await expect(cards.first()).toContainText("the role you're aiming for");
   await expect(page.locator(".recommendation", { hasText: "AZ-900:" })).toHaveCount(0);
+  // The sticky header is captured where the page is scrolled to, so go back to the top first.
+  await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, "14-career");
 
   // Adding one opens the certification editor with its details and official page filled in.
