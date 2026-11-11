@@ -1,3 +1,4 @@
+using System.Text;
 using CertCoach.Application.Practice;
 using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
@@ -15,6 +16,15 @@ internal static class PracticeEndpoints
                 service.ListAsync(certificationId, objectiveId, ct))
             .WithName("ListPracticeItems")
             .WithSummary("A certification's practice questions and flashcards, optionally for one objective.");
+
+        group.MapGet("/export", async (Guid certificationId, PracticeService service, CancellationToken ct) =>
+            {
+                var (content, fileName) = await service.ExportAsync(certificationId, ct);
+                return TypedResults.File(Encoding.UTF8.GetBytes(content), AnkiExport.ContentType, fileName);
+            })
+            .WithName("ExportPracticeItems")
+            .WithSummary("A certification's active items as a text file for Anki's File > Import.")
+            .Produces(StatusCodes.Status200OK, contentType: "text/plain");
 
         group.MapPost("/", async (CreatePracticeItemRequest request, PracticeService service, CancellationToken ct) =>
             {
@@ -50,6 +60,11 @@ internal static class PracticeEndpoints
         review.MapGet("/quiz", (Guid[] objectiveIds, ReviewService service, CancellationToken ct) => service.GetQuizAsync(objectiveIds, ct))
             .WithName("GetQuiz")
             .WithSummary("A short quiz on the given objectives, such as a study session's.");
+
+        review.MapGet("/practice", (Guid certificationId, Guid? domainId, bool? weak, ReviewService service, CancellationToken ct) =>
+                service.GetPracticeAsync(certificationId, domainId, weak ?? false, ct))
+            .WithName("GetPractice")
+            .WithSummary("Extra practice outside the schedule: one domain's items, or with weak=true the items you keep getting wrong.");
 
         review.MapPost("/items/{id:guid}/answer", (Guid id, AnswerRequest request, ReviewService service, CancellationToken ct) =>
                 service.AnswerAsync(id, request, ct))

@@ -12,6 +12,7 @@ import {
   usePracticeItems,
   useSetPracticeItemStatus,
 } from "../api/hooks";
+import { ItemEditor } from "../components/ItemEditor";
 import { Alert, EmptyState, ProgressBar } from "../components/ui";
 
 const kindLabels: Record<PracticeItemView["kind"], string> = {
@@ -59,6 +60,11 @@ export function PracticeItemsPage() {
           <Link to={`/mock-exams/new?certificationId=${id}`} className="button ghost">
             Take a mock exam
           </Link>
+          {all.length > 0 && (
+            <a href={`/api/practice/items/export?certificationId=${id}`} className="button ghost" download title="A text file for Anki's File > Import">
+              Export to Anki
+            </a>
+          )}
           <Link to="/certifications" className="button ghost">
             Back
           </Link>
@@ -256,6 +262,7 @@ function ItemRow({ item }: { item: PracticeItemView }) {
   const setStatus = useSetPracticeItemStatus();
   const remove = useDeletePracticeItem(item.certificationId);
   const suspended = item.status === "Suspended";
+  const [editing, setEditing] = useState(false);
 
   return (
     <li className={`practice-item${suspended ? " suspended" : ""}`}>
@@ -266,7 +273,8 @@ function ItemRow({ item }: { item: PracticeItemView }) {
           {suspended && <span className="badge">Suspended</span>}
           <span className="practice-prompt">{item.prompt}</span>
         </summary>
-        <div className="stack practice-body">
+        {editing && <ItemEditor item={item} onDone={() => setEditing(false)} />}
+        <div className="stack practice-body" hidden={editing}>
           {item.options.length > 0 && (
             <ol className="plain-list">
               {item.options.map((option, i) => (
@@ -292,6 +300,9 @@ function ItemRow({ item }: { item: PracticeItemView }) {
             </p>
           )}
           <div className="actions">
+            <button type="button" className="button ghost small" onClick={() => setEditing(true)}>
+              Edit
+            </button>
             <button
               type="button"
               className="button ghost small"

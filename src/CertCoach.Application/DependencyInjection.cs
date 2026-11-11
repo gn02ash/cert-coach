@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Activity;
 using CertCoach.Application.Ask;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Certifications.Outlines;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<CertificationService>();
         services.AddScoped<PlanService>();
         services.AddScoped<DashboardService>();
+        services.AddScoped<ActivityService>();
         services.AddScoped<UserAccountService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();

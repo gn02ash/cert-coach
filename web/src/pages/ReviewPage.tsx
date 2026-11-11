@@ -13,13 +13,19 @@ const grades: { grade: ReviewGrade; label: string; key: keyof NonNullable<Review
   { grade: "Easy", label: "Easy", key: "easy" },
 ];
 
-/** The daily review, or with ?objectives=… a quiz on a study session's objectives. */
+/**
+ * The daily review. With ?objectives=… it is a quiz on a study session's objectives; with ?certificationId=…
+ * and ?weak=1 or ?domainId=… it is extra practice on weak spots or one domain.
+ */
 export function ReviewPage() {
   const [params] = useSearchParams();
   const objectiveIds = params.get("objectives")?.split(",").filter(Boolean);
   const certificationId = params.get("certificationId") ?? undefined;
-  const quiz = !!objectiveIds?.length;
-  const set = useReviewSet({ certificationId, objectiveIds });
+  const domainId = params.get("domainId") ?? undefined;
+  const weak = params.get("weak") === "1";
+  const practice = !!certificationId && (weak || !!domainId);
+  const quiz = !!objectiveIds?.length || practice;
+  const set = useReviewSet({ certificationId, objectiveIds, domainId, weak });
   const [index, setIndex] = useState(0);
   const [tally, setTally] = useState({ correct: 0, wrong: 0, cards: 0 });
 
@@ -28,20 +34,30 @@ export function ReviewPage() {
 
   const { cards } = set.data;
   const card = cards[index];
-  const title = quiz ? "Quiz" : "Review";
+  const title = weak ? "Weak spots" : domainId ? "Domain practice" : quiz ? "Quiz" : "Review";
 
   if (cards.length === 0) {
     return (
       <div className="stack">
         <h1>{title}</h1>
-        <EmptyState title={quiz ? "No practice items for these objectives yet" : "Nothing to review today"}>
+        <EmptyState
+          title={
+            weak
+              ? "No weak spots right now"
+              : quiz
+                ? "No practice items for these objectives yet"
+                : "Nothing to review today"
+          }
+        >
           <p className="muted">
-            {set.data.newAvailable > 0 && !quiz
-              ? "You've reached today's limit of new items. More tomorrow."
-              : "Generate questions from your documents on a certification's Practice items page."}
+            {weak
+              ? "Items show up here once you've missed them in a review, a quiz or a mock exam."
+              : set.data.newAvailable > 0 && !quiz
+                ? "You've reached today's limit of new items. More tomorrow."
+                : "Generate questions from your documents on a certification's Practice items page."}
           </p>
-          <Link className="button primary" to="/certifications">
-            Go to certifications
+          <Link className="button primary" to={weak ? "/review" : "/certifications"}>
+            {weak ? "Go to today's review" : "Go to certifications"}
           </Link>
         </EmptyState>
       </div>

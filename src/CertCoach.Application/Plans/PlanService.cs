@@ -1,3 +1,4 @@
+using System.Globalization;
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Common;
@@ -64,6 +65,21 @@ public sealed class PlanService(
                 p.Sessions.Count(s => s.Status == SessionStatus.Completed),
                 p.Sessions.Count))
             .ToList();
+    }
+
+    /// <summary>The plan's remaining sessions and exam day as an iCalendar file.</summary>
+    /// <param name="startTime">"HH:mm" to time the sessions; all-day events when null.</param>
+    public async Task<string> CalendarAsync(Guid planId, string? startTime, CancellationToken ct)
+    {
+        TimeOnly? at = null;
+        if (!string.IsNullOrWhiteSpace(startTime))
+        {
+            at = TimeOnly.TryParseExact(startTime.Trim(), "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+                ? parsed
+                : throw new DomainException("Give the start time as HH:mm, for example 18:30.");
+        }
+
+        return PlanCalendar.Build(await GetAsync(planId, ct), clock.Today, clock.Now, at);
     }
 
     public Task<PlanView> GetAsync(Guid planId, CancellationToken ct) =>

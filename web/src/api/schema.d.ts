@@ -154,6 +154,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reviews and completed sessions per day in your time zone, with your current and longest study streak. */
+        get: operations["GetActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ai/status": {
         parameters: {
             query?: never;
@@ -284,6 +301,26 @@ export interface paths {
         get: operations["ListPlans"];
         put?: never;
         post: operations["CreatePlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plans/{planId}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The plan's remaining sessions and exam day as an iCalendar file to import into a calendar.
+         * @description Sessions are all-day events, or timed from ?at=HH:mm in local time.
+         */
+        get: operations["GetPlanCalendar"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -456,6 +493,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/practice/items/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A certification's active items as a text file for Anki's File > Import. */
+        get: operations["ExportPracticeItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/items/{id}": {
         parameters: {
             query?: never;
@@ -516,6 +570,23 @@ export interface paths {
         };
         /** A short quiz on the given objectives, such as a study session's. */
         get: operations["GetQuiz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/practice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Extra practice outside the schedule: one domain's items, or with weak=true the items you keep getting wrong. */
+        get: operations["GetPractice"];
         put?: never;
         post?: never;
         delete?: never;
@@ -665,6 +736,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ActivityDay: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            reviews: number;
+            /** Format: int32 */
+            sessions: number;
+        };
+        ActivityView: {
+            /** Format: date */
+            today: string;
+            streak: components["schemas"]["Streak"];
+            /** Format: int32 */
+            reviewsThisWeek: number;
+            /** Format: int32 */
+            sessionsThisWeek: number;
+            days: components["schemas"]["ActivityDay"][];
+        };
         AiCapabilities: {
             chatProvider: string;
             chatModel: null | string;
@@ -1282,6 +1371,13 @@ export interface components {
              */
             durationMinutes: number;
         };
+        Streak: {
+            /** Format: int32 */
+            current: number;
+            /** Format: int32 */
+            longest: number;
+            studiedToday: boolean;
+        };
         TimeZoneRequest: {
             timeZone: string;
         };
@@ -1504,6 +1600,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DashboardView"];
+                };
+            };
+        };
+    };
+    GetActivity: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityView"];
                 };
             };
         };
@@ -1776,6 +1894,28 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlanView"];
                 };
+            };
+        };
+    };
+    GetPlanCalendar: {
+        parameters: {
+            query?: {
+                at?: string;
+            };
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -2095,6 +2235,26 @@ export interface operations {
             };
         };
     };
+    ExportPracticeItems: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UpdatePracticeItem: {
         parameters: {
             query?: never;
@@ -2193,6 +2353,30 @@ export interface operations {
         parameters: {
             query: {
                 objectiveIds: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewSet"];
+                };
+            };
+        };
+    };
+    GetPractice: {
+        parameters: {
+            query: {
+                certificationId: string;
+                domainId?: string;
+                weak?: boolean;
             };
             header?: never;
             path?: never;

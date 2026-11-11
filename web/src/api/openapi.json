@@ -235,6 +235,37 @@
         }
       }
     },
+    "/api/activity": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Reviews and completed sessions per day in your time zone, with your current and longest study streak.",
+        "operationId": "GetActivity",
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ai/status": {
       "get": {
         "tags": [
@@ -595,6 +626,39 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/plans/{planId}/calendar.ics": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "The plan's remaining sessions and exam day as an iCalendar file to import into a calendar.",
+        "description": "Sessions are all-day events, or timed from ?at=HH:mm in local time.",
+        "operationId": "GetPlanCalendar",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "at",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -1061,6 +1125,31 @@
         }
       }
     },
+    "/api/practice/items/export": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "A certification's active items as a text file for Anki's File > Import.",
+        "operationId": "ExportPracticeItems",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/practice/items/{id}": {
       "put": {
         "tags": [
@@ -1216,6 +1305,53 @@
                 "type": "string",
                 "format": "uuid"
               }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/practice": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Extra practice outside the schedule: one domain's items, or with weak=true the items you keep getting wrong.",
+        "operationId": "GetPractice",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "domainId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "weak",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -1575,6 +1711,61 @@
   },
   "components": {
     "schemas": {
+      "ActivityDay": {
+        "required": [
+          "date",
+          "reviews",
+          "sessions"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessions": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ActivityView": {
+        "required": [
+          "today",
+          "streak",
+          "reviewsThisWeek",
+          "sessionsThisWeek",
+          "days"
+        ],
+        "type": "object",
+        "properties": {
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "streak": {
+            "$ref": "#/components/schemas/Streak"
+          },
+          "reviewsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDay"
+            }
+          }
+        }
+      },
       "AiCapabilities": {
         "required": [
           "chatProvider",
@@ -3806,6 +3997,27 @@
             "type": "integer",
             "format": "int32",
             "default": 60
+          }
+        }
+      },
+      "Streak": {
+        "required": [
+          "current",
+          "longest",
+          "studiedToday"
+        ],
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "longest": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "studiedToday": {
+            "type": "boolean"
           }
         }
       },

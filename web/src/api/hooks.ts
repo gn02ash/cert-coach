@@ -11,6 +11,7 @@ import {
   type OutlineImport,
   type CreatePracticeItemRequest,
   type PracticeItemStatus,
+  type UpdatePracticeItemRequest,
   type PracticeItemView,
   type GenerateItemsRequest,
   type GenerationJobView,
@@ -21,6 +22,7 @@ import {
   type MockExamView,
   type StartMockExamRequest,
   type ReadinessReport,
+  type ActivityView,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -208,6 +210,15 @@ export function useCreatePracticeItem() {
   });
 }
 
+export function useUpdatePracticeItem() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: UpdatePracticeItemRequest }) =>
+      api<PracticeItemView>(`/api/practice/items/${id}`, "PUT", request),
+    onSuccess: (item) => client.invalidateQueries({ queryKey: keys.practiceItems(item.certificationId) }),
+  });
+}
+
 export function useSetPracticeItemStatus() {
   const client = useQueryClient();
   return useMutation({
@@ -261,13 +272,25 @@ export function useCancelGeneration() {
  * Today's review queue, or a quiz on some objectives. Fetched once per visit: refetching mid-session would
  * reshuffle the cards the learner is working through.
  */
-export const useReviewSet = (scope: { certificationId?: string; objectiveIds?: string[] }) =>
+export const useReviewSet = (scope: { certificationId?: string; objectiveIds?: string[]; domainId?: string; weak?: boolean }) =>
   useQuery({
-    queryKey: ["review", scope.certificationId ?? "", ...(scope.objectiveIds ?? [])],
-    queryFn: () =>
-      scope.objectiveIds?.length
-        ? api<ReviewSet>(`/api/review/quiz?${scope.objectiveIds.map((id) => `objectiveIds=${id}`).join("&")}`)
-        : api<ReviewSet>(`/api/review${scope.certificationId ? `?certificationId=${scope.certificationId}` : ""}`),
+    queryKey: ["review", scope.certificationId ?? "", scope.domainId ?? "", !!scope.weak, ...(scope.objectiveIds ?? [])],
+    queryFn: () => {
+      if (scope.objectiveIds?.length) {
+        return api<ReviewSet>(`/api/review/quiz?${scope.objectiveIds.map((id) => `objectiveIds=${id}`).join("&")}`);
+      }
+
+      if (scope.certificationId && (scope.weak || scope.domainId)) {
+        const query = new URLSearchParams({ certificationId: scope.certificationId });
+        if (scope.domainId) query.set("domainId", scope.domainId);
+        if (scope.weak) query.set("weak", "true");
+        return api<ReviewSet>(`/api/review/practice?${query}`);
+      }
+
+      return api<ReviewSet>(`/api/review${scope.certificationId ? `?certificationId=${scope.certificationId}` : ""}`);
+    },
+    // Not kept between visits: a second round of practice should draw again.
+    gcTime: 0,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
@@ -329,3 +352,7 @@ export const useReadiness = (certificationId: string) =>
     queryKey: ["readiness", certificationId],
     queryFn: () => api<ReadinessReport>(`/api/readiness/${certificationId}`),
   });
+
+/** Keyed under the dashboard, so anything that refreshes the dashboard (a session done, an answer) refreshes it too. */
+export const useActivity = () =>
+  useQuery({ queryKey: [...keys.dashboard, "activity"], queryFn: () => api<ActivityView>("/api/activity") });
