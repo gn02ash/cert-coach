@@ -447,7 +447,11 @@ export function useSetResourceDone() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ id, done }: { id: string; done: boolean }) => api<ResourceView>(`/api/resources/${id}/done`, "PUT", { done }),
-    onSuccess: (resource) => client.invalidateQueries({ queryKey: resourceKeys.saved(resource.certificationId) }),
+    // The reply is the saved resource, so the list is updated from it without another request.
+    onSuccess: (resource) =>
+      client.setQueryData<ResourceView[]>(resourceKeys.saved(resource.certificationId), (list) =>
+        list?.map((r) => (r.id === resource.id ? resource : r)),
+      ),
   });
 }
 
