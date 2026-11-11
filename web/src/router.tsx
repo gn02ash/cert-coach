@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { AuthGate } from "./components/AuthGate";
 import { Layout } from "./components/Layout";
 import { AskPage } from "./pages/AskPage";
+import { CareerPage } from "./pages/CareerPage";
 import { CertificationEditorPage } from "./pages/CertificationEditorPage";
 import { CertificationsPage } from "./pages/CertificationsPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: "mock-exams/new", element: <MockExamStartPage /> },
       { path: "mock-exams/:id", element: <MockExamPage /> },
       { path: "library", element: <LibraryPage /> },
+      { path: "career", element: <CareerPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "ask", element: <AskPage /> },
       { path: "*", element: <NotFoundPage /> },
