@@ -5,6 +5,7 @@ import { AskPage } from "./pages/AskPage";
 import { CareerPage } from "./pages/CareerPage";
 import { CertificationEditorPage } from "./pages/CertificationEditorPage";
 import { CertificationsPage } from "./pages/CertificationsPage";
+import { ConnectPage } from "./pages/ConnectPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: "mock-exams/:id", element: <MockExamPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "career", element: <CareerPage /> },
+      { path: "connect", element: <ConnectPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "ask", element: <AskPage /> },
       { path: "*", element: <NotFoundPage /> },

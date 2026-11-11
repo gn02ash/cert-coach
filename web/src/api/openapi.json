@@ -2041,6 +2041,82 @@
           }
         }
       }
+    },
+    "/api/tokens": {
+      "get": {
+        "tags": [
+          "Access tokens"
+        ],
+        "operationId": "ListApiTokens",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTokenView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Access tokens"
+        ],
+        "summary": "Create a personal access token for connecting an AI assistant over MCP. The token is returned once.",
+        "operationId": "CreateApiToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedApiToken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tokens/{id}": {
+      "delete": {
+        "tags": [
+          "Access tokens"
+        ],
+        "operationId": "RevokeApiToken",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2239,6 +2315,48 @@
           "dueOn": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "ApiTokenView": {
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "createdAt",
+          "expiresAt",
+          "lastUsedAt",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
           }
         }
       },
@@ -2459,6 +2577,37 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "CreateApiTokenRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "lifetimeDays": {
+            "type": "integer",
+            "format": "int32",
+            "default": 90
+          }
+        }
+      },
+      "CreatedApiToken": {
+        "required": [
+          "details",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "$ref": "#/components/schemas/ApiTokenView"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },
@@ -5036,6 +5185,9 @@
     },
     {
       "name": "Resources"
+    },
+    {
+      "name": "Access tokens"
     }
   ]
 }

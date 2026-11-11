@@ -39,6 +39,8 @@ public interface ICertCoachDbContext
 
     DbSet<StudyResource> StudyResources { get; }
 
+    DbSet<ApiToken> ApiTokens { get; }
+
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }
 
