@@ -6,6 +6,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Careers\Catalogue\catalogue.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="CertCoach.Application.Tests" />
   </ItemGroup>
 

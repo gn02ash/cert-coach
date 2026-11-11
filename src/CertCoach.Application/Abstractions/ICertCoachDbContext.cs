@@ -1,3 +1,4 @@
+using CertCoach.Domain.Careers;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
@@ -32,6 +33,8 @@ public interface ICertCoachDbContext
     DbSet<ReviewLog> ReviewLogs { get; }
 
     DbSet<MockExam> MockExams { get; }
+
+    DbSet<CareerProfile> CareerProfiles { get; }
 
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }

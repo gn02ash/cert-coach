@@ -26,6 +26,54 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CertCoach.Domain.Careers.CareerProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.PrimitiveCollection<string[]>("HeldCertifications")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("held_certifications");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.PrimitiveCollection<string[]>("Roles")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("roles");
+
+                    b.PrimitiveCollection<string[]>("Skills")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("skills");
+
+                    b.Property<string>("TargetRole")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("target_role");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int?>("YearsExperience")
+                        .HasColumnType("integer")
+                        .HasColumnName("years_experience");
+
+                    b.HasKey("Id")
+                        .HasName("pk_career_profiles");
+
+                    b.HasIndex("OwnerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_career_profiles_owner_id");
+
+                    b.ToTable("career_profiles", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Certifications.Certification", b =>
                 {
                     b.Property<Guid>("Id")

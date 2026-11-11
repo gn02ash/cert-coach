@@ -1,6 +1,7 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Activity;
 using CertCoach.Application.Ask;
+using CertCoach.Application.Careers;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Certifications.Outlines;
 using CertCoach.Application.Certifications.Outlines.Import;
@@ -29,6 +30,8 @@ public static class DependencyInjection
         services.AddScoped<PlanService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<ActivityService>();
+        services.AddScoped<CareerAi>();
+        services.AddScoped<CareerService>();
         services.AddScoped<UserAccountService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();
