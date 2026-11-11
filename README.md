@@ -31,6 +31,8 @@ Then practise: exam-style questions and flashcards written from your documents, 
 
 ![Mock exam results with a score per domain](docs/screenshots/12-mock-exam.png)
 
+![The dashboard after practising: study streak, activity calendar and readiness per domain](docs/screenshots/13-dashboard-practice.png)
+
 The screenshots are taken by the end-to-end test in CI against `docker compose up`, in offline mode, so Ask shows quoted sentences rather than a written answer and practice items are fill-in-the-blank.
 
 </details>
@@ -55,7 +57,7 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Parse with AI.** Outlines in layouts the parser can't read, such as tables copied from a PDF, can be parsed by the chat model into the same editable draft.
 - **Retrieval evaluation.** A synthetic test set and tool that score recall@k, MRR and the "not in your materials" gate. CI fails if retrieval quality drops. See [`eval/`](eval/README.md).
 
-**Phase 3: practice** (this release)
+**Phase 3: practice**
 
 - **Outline from a URL.** Give the exam page, study guide or exam guide PDF. The parser reads it and follows the study guide link, including Microsoft Learn's, which its pages add with JavaScript. With a chat model, an AI parser and then an agent with a read-only, same-site page tool take over when the parser can't, reading at most 5 pages. The exam code, name and "skills measured as of" date are filled in, and private network addresses are never fetched.
 - **Generated questions and flashcards.** For a certification, a domain or one objective, in the background. With a chat model: exam-style single and "choose two" questions and flashcards written from your passages, each citing them, with a supporting quote kept only if the passage really says it. Objectives your documents don't cover get questions from the model's own knowledge, marked "Not from your materials". Offline: fill-in-the-blank items from sentences in your PDFs. Every item is validated and duplicates are dropped.
@@ -64,10 +66,19 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Readiness per domain.** Objectives recalled × recent accuracy, shrunk toward 50% until there's enough data, with the formula shown. An estimate from your own questions, not a pass prediction.
 - **Practice items to edit.** Write your own flashcards, suspend or delete items, and keep them when the outline changes: items follow the objective with the same text.
 
+**Study tools** (this release)
+
+- **Weak spots and domain practice.** Extra practice outside the schedule: the items you keep missing (ranked by lapses, a failed last answer and lost ease), or one exam domain at a time, straight from the readiness card.
+- **Study streak and activity calendar.** Reviews and completed sessions per day in your time zone, your current and longest streak, and one square per day for the last 12 weeks.
+- **Plan in your calendar.** Download the remaining sessions and the exam day as an `.ics` file for Outlook, Google Calendar or Apple Calendar, as all-day events or timed from a start time you choose.
+- **Edit any item.** Fix a question, its options, the correct answers or the explanation in place. The review schedule is kept.
+- **Export to Anki.** A certification's active items as a text file for Anki's File → Import, tagged with the exam code and domain.
+
 **Roadmap**
 
 - [x] Phase 2: upload your PDFs, RAG answers with page citations, and a retrieval evaluation set
 - [x] Phase 3: generated practice questions and flashcards, SM-2 spaced repetition, mock exams, readiness score per domain, outline import from a URL
+- [x] Study tools: weak-spot practice, study streak, calendar export, item editing, Anki export
 - [ ] Phase 4: certification recommendations from your CV
 - [ ] Phase 5: Microsoft Learn and YouTube resources per objective, and an MCP server (`get_today_session`, `quiz_me`, …)
 
@@ -226,6 +237,7 @@ flowchart LR
 | **Questions grounded or labelled** | Document-based items must cite a real passage and keep only quotes the passage contains. Items written from model knowledge are stored and shown as such, never mixed in silently. |
 | **Generation and review work offline too** | Without a chat model, items are fill-in-the-blank sentences from your PDFs, and the eval checks every one is grounded, so CI and the e2e test exercise the whole practice loop without keys. |
 | **Background jobs act as their owner** | A job's scope sets a `BackgroundUser` before any service is resolved, so search, the owner query filters and "today" work exactly as in a request. |
+| **Calendar as a file, not a feed** | A subscription URL would need a long-lived secret in the link, since calendar apps can't send the session cookie. A download with stable event UIDs covers the need without one. |
 | **SM-2, logged** | A well-understood scheduler that's easy to test, with every answer in `review_logs`, so readiness is computed from history rather than stored and drifting. |
 
 ## Configuration
