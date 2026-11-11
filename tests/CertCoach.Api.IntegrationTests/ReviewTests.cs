@@ -86,6 +86,32 @@ public class ReviewTests(CertCoachApiFactory factory)
         (await AnswerAsync(client, inQuiz.Id, new AnswerRequest([2], null, ReviewSource.Quiz))).Correct.ShouldBe(true);
     }
 
+    [Fact]
+    public async Task Extra_practice_draws_one_domain_or_only_the_items_missed_before()
+    {
+        var client = await factory.CreateUserClientAsync();
+        var certification = await SendAsync<CertificationDetail>(client, HttpMethod.Post, "/api/certifications", new SaveCertificationRequest(
+            "WEAK-" + Random.Shared.Next(100, 999), "Weak", "Contoso", null, null, CertificationStatus.Active, null,
+            [new DomainDraft("Build", 60, 60, [new SkillAreaDraft("Apps", ["Build chat apps"])]),
+             new DomainDraft("Operate", 40, 40, [new SkillAreaDraft("Ops", ["Monitor apps"])])]));
+        var (build, operate) = (certification.Domains[0], certification.Domains[1]);
+        var missed = await CreateAsync(client, new(certification.Id, build.SkillAreas[0].Objectives[0].Id, PracticeItemKind.SingleChoice, "Missed?", ["A", "B", "C"], [0], ""));
+        var known = await CreateAsync(client, new(certification.Id, build.SkillAreas[0].Objectives[0].Id, PracticeItemKind.SingleChoice, "Known?", ["A", "B", "C"], [0], ""));
+        var other = await CreateAsync(client, new(certification.Id, operate.SkillAreas[0].Objectives[0].Id, PracticeItemKind.Flashcard, "Other", null, null, "Back"));
+        await AnswerAsync(client, missed.Id, new AnswerRequest([1], null));
+        await AnswerAsync(client, known.Id, new AnswerRequest([0], null));
+
+        var weak = await GetAsync<ReviewSet>(client, $"/api/review/practice?certificationId={certification.Id}&weak=true");
+        var domain = await GetAsync<ReviewSet>(client, $"/api/review/practice?certificationId={certification.Id}&domainId={operate.Id}");
+        var buildDomain = await GetAsync<ReviewSet>(client, $"/api/review/practice?certificationId={certification.Id}&domainId={build.Id}");
+
+        weak.Cards.ShouldHaveSingleItem().Id.ShouldBe(missed.Id);
+        domain.Cards.ShouldHaveSingleItem().Id.ShouldBe(other.Id);
+
+        // Not due until tomorrow, but extra practice still offers them.
+        buildDomain.Cards.Select(c => c.Id).ShouldBe([missed.Id, known.Id], ignoreOrder: true);
+    }
+
     private async Task<(HttpClient, CertificationDetail)> SetUpAsync()
     {
         var client = await factory.CreateUserClientAsync();

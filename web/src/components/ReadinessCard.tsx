@@ -31,11 +31,17 @@ export function ReadinessCard({ certificationId, className = "card" }: { certifi
                 <ProgressBar value={d.score ?? 0} max={100} label={`${d.name} readiness`} />
                 <span className="muted tiny">
                   {d.objectivesCovered}/{d.objectivesTotal} objectives recalled · {d.answers} {d.answers === 1 ? "answer" : "answers"}
-                  {d.accuracy != null ? ` · ${d.accuracy}% right` : ""}
+                  {d.accuracy != null ? ` · ${d.accuracy}% right` : ""} ·{" "}
+                  <Link to={`/review?certificationId=${certificationId}&domainId=${d.domainId}`} aria-label={`Practise ${d.name}`}>
+                    Practise
+                  </Link>
                 </span>
               </li>
             ))}
           </ul>
+          <Link className="button ghost small" to={`/review?certificationId=${certificationId}&weak=1`}>
+            Practise weak spots
+          </Link>
           {report.overall == null && (
             <p className="muted small">
               The overall score appears once every domain has 10 answers.{" "}

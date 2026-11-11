@@ -261,13 +261,25 @@ export function useCancelGeneration() {
  * Today's review queue, or a quiz on some objectives. Fetched once per visit: refetching mid-session would
  * reshuffle the cards the learner is working through.
  */
-export const useReviewSet = (scope: { certificationId?: string; objectiveIds?: string[] }) =>
+export const useReviewSet = (scope: { certificationId?: string; objectiveIds?: string[]; domainId?: string; weak?: boolean }) =>
   useQuery({
-    queryKey: ["review", scope.certificationId ?? "", ...(scope.objectiveIds ?? [])],
-    queryFn: () =>
-      scope.objectiveIds?.length
-        ? api<ReviewSet>(`/api/review/quiz?${scope.objectiveIds.map((id) => `objectiveIds=${id}`).join("&")}`)
-        : api<ReviewSet>(`/api/review${scope.certificationId ? `?certificationId=${scope.certificationId}` : ""}`),
+    queryKey: ["review", scope.certificationId ?? "", scope.domainId ?? "", !!scope.weak, ...(scope.objectiveIds ?? [])],
+    queryFn: () => {
+      if (scope.objectiveIds?.length) {
+        return api<ReviewSet>(`/api/review/quiz?${scope.objectiveIds.map((id) => `objectiveIds=${id}`).join("&")}`);
+      }
+
+      if (scope.certificationId && (scope.weak || scope.domainId)) {
+        const query = new URLSearchParams({ certificationId: scope.certificationId });
+        if (scope.domainId) query.set("domainId", scope.domainId);
+        if (scope.weak) query.set("weak", "true");
+        return api<ReviewSet>(`/api/review/practice?${query}`);
+      }
+
+      return api<ReviewSet>(`/api/review${scope.certificationId ? `?certificationId=${scope.certificationId}` : ""}`);
+    },
+    // Not kept between visits: a second round of practice should draw again.
+    gcTime: 0,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

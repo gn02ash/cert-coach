@@ -17,6 +17,7 @@ public sealed class ReviewService(ICertCoachDbContext db, ICurrentUser user, Use
 
     public const int MaxCards = 100;
     public const int QuizSize = 10;
+    public const int PracticeSize = 15;
 
     /// <param name="certificationId">Limits the queue to one certification; all of them when null.</param>
     public async Task<ReviewSet> GetQueueAsync(Guid? certificationId, CancellationToken ct)
@@ -69,6 +70,46 @@ public sealed class ReviewService(ICertCoachDbContext db, ICurrentUser user, Use
         return new ReviewSet(
             today, items.Count(i => i.DueOn <= today), items.Count(i => i.DueOn == null), QuizSize, reviewedToday, await ToCardsAsync(cards, ct));
     }
+
+    /// <summary>
+    /// Extra practice outside the schedule: one domain's items, or the certification's weak spots, which are the
+    /// items forgotten at least once, failed last time, or graded Hard often enough to lose ease.
+    /// </summary>
+    public async Task<ReviewSet> GetPracticeAsync(Guid certificationId, Guid? domainId, bool weak, CancellationToken ct)
+    {
+        var today = clock.Today;
+        var query = ActiveItems(certificationId);
+        if (domainId is { } domain)
+        {
+            var objectives = await db.Certifications
+                .Where(c => c.Id == certificationId && c.OwnerId == user.UserId)
+                .SelectMany(c => c.Domains)
+                .Where(d => d.Id == domain)
+                .SelectMany(d => d.SkillAreas)
+                .SelectMany(s => s.Objectives)
+                .Select(o => o.Id)
+                .ToListAsync(ct);
+            query = query.Where(i => i.ObjectiveId != null && objectives.Contains(i.ObjectiveId.Value));
+        }
+
+        var items = await query.ToListAsync(ct);
+        var cards = (weak
+                ? items.Where(i => Weakness(i) > 0).OrderByDescending(Weakness).ThenBy(i => StableHash(i.Id, today))
+                : items.OrderBy(i => i.DueOn is null || i.DueOn <= today ? 0 : 1).ThenBy(i => StableHash(i.Id, today)))
+            .Take(PracticeSize)
+            .ToList();
+        var reviewedToday = await db.ReviewLogs.CountAsync(r => r.OwnerId == user.UserId && r.ReviewedOn == today, ct);
+        return new ReviewSet(
+            today, items.Count(i => i.DueOn <= today), items.Count(i => i.DueOn == null), PracticeSize, reviewedToday, await ToCardsAsync(cards, ct));
+    }
+
+    /// <summary>How much trouble a reviewed item has given: lapses weigh most, then a failed last answer, then lost ease.</summary>
+    internal static double Weakness(PracticeItem item) =>
+        item.IsNew
+            ? 0
+            : (2 * item.Lapses)
+              + (item.Repetitions == 0 ? 3 : 0)
+              + Math.Max(0, 4 * (PracticeItem.InitialEaseFactor - item.EaseFactor));
 
     public async Task<AnswerResult> AnswerAsync(Guid itemId, AnswerRequest request, CancellationToken ct)
     {

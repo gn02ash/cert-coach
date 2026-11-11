@@ -1233,6 +1233,53 @@
         }
       }
     },
+    "/api/review/practice": {
+      "get": {
+        "tags": [
+          "Review"
+        ],
+        "summary": "Extra practice outside the schedule: one domain's items, or with weak=true the items you keep getting wrong.",
+        "operationId": "GetPractice",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "domainId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "weak",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/review/items/{id}/answer": {
       "post": {
         "tags": [
