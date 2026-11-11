@@ -15,10 +15,10 @@ export function ActivityCard() {
     <section className="card activity-card" aria-label="Study activity">
       <div className="activity-summary">
         <div>
+          <h3 className="card-title">Study streak</h3>
           <div className="big-number">
             {streak.current} <span className="activity-unit">{streak.current === 1 ? "day" : "days"}</span>
           </div>
-          <h3 className="card-title">Study streak</h3>
         </div>
         <p className="muted small">
           {streak.current > 0 && !streak.studiedToday && <strong>Study today to keep it going. </strong>}
