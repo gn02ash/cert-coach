@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import type { PlanDashboard } from "../api/client";
 import { useDashboard, useRescheduleOverdue } from "../api/hooks";
+import { ActivityCard } from "../components/ActivityCard";
 import { ReadinessCard } from "../components/ReadinessCard";
 import { SessionCard } from "../components/SessionCard";
 import { EmptyState, KindBadge, ProgressBar, ShortfallNotice } from "../components/ui";
@@ -44,6 +45,8 @@ export function DashboardPage() {
           </Link>
         </div>
       )}
+
+      <ActivityCard />
 
       {plans.length === 0 && (
         <EmptyState title="No active study plan yet">

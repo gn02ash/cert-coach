@@ -21,6 +21,7 @@ import {
   type MockExamView,
   type StartMockExamRequest,
   type ReadinessReport,
+  type ActivityView,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -341,3 +342,7 @@ export const useReadiness = (certificationId: string) =>
     queryKey: ["readiness", certificationId],
     queryFn: () => api<ReadinessReport>(`/api/readiness/${certificationId}`),
   });
+
+/** Keyed under the dashboard, so anything that refreshes the dashboard (a session done, an answer) refreshes it too. */
+export const useActivity = () =>
+  useQuery({ queryKey: [...keys.dashboard, "activity"], queryFn: () => api<ActivityView>("/api/activity") });
