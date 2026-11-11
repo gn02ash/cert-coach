@@ -732,6 +732,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/career/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCareerProfile"];
+        /** Save the profile recommendations are based on: skills, roles, experience, certifications held, target role. */
+        put: operations["SaveCareerProfile"];
+        post?: never;
+        delete: operations["DeleteCareerProfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career/cv/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read a pasted CV into a draft profile. The CV is not stored.
+         * @description With a chat provider the text is sent to it to be read; without one, known skills, job titles and exam codes are matched.
+         */
+        post: operations["ReadCvText"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career/cv/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read a CV uploaded as a PDF into a draft profile. The file is read in memory and not stored. */
+        post: operations["ReadCvFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Certifications from the built-in catalogue ranked for the saved profile, with the reasons for each score. */
+        get: operations["GetRecommendations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career/recommendations/advice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The chat model's order and reasons for the recommended certifications. Needs a chat provider. */
+        post: operations["GetRecommendationAdvice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -753,6 +841,14 @@ export interface components {
             /** Format: int32 */
             sessionsThisWeek: number;
             days: components["schemas"]["ActivityDay"][];
+        };
+        AdviceItem: {
+            code: string;
+            rationale: string;
+        };
+        AdviceView: {
+            overview: string;
+            items: components["schemas"]["AdviceItem"][];
         };
         AiCapabilities: {
             chatProvider: string;
@@ -818,6 +914,8 @@ export interface components {
             domains: components["schemas"]["DomainView"][];
         };
         /** @enum {unknown} */
+        CertificationLevel: "Fundamentals" | "Associate" | "Professional" | "Specialty";
+        /** @enum {unknown} */
         CertificationStatus: "Active" | "Beta" | "Retired" | "Replaced";
         CertificationSummary: {
             /** Format: uuid */
@@ -845,6 +943,8 @@ export interface components {
             correctOptions: null | number[];
             answer: string;
         };
+        /** @enum {unknown} */
+        CvReadMethod: "Offline" | "Ai";
         DashboardView: {
             /** Format: date */
             today: string;
@@ -1203,12 +1303,61 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ProfileDraft: {
+            skills: string[];
+            roles: string[];
+            heldCertifications: string[];
+            /** Format: int32 */
+            yearsExperience: null | number;
+            method: components["schemas"]["CvReadMethod"];
+            notes: string[];
+        };
+        ProfileView: {
+            exists: boolean;
+            skills: string[];
+            roles: string[];
+            heldCertifications: string[];
+            /** Format: int32 */
+            yearsExperience: null | number;
+            targetRole: null | string;
+            /** Format: date-time */
+            updatedAt: null | string;
+        };
+        ReadCvTextRequest: {
+            text: string;
+        };
         ReadinessReport: {
             /** Format: int32 */
             overall: null | number;
             /** Format: int32 */
             domainsScored: number;
             domains: components["schemas"]["DomainReadiness"][];
+        };
+        RecommendationsView: {
+            /** Format: date */
+            catalogueCheckedOn: string;
+            /** Format: int32 */
+            catalogueSize: number;
+            items: components["schemas"]["RecommendationView"][];
+        };
+        RecommendationView: {
+            code: string;
+            name: string;
+            vendor: string;
+            level: components["schemas"]["CertificationLevel"];
+            summary: string;
+            /** Format: uri */
+            url: string;
+            /** Format: int32 */
+            score: number;
+            matchedSkills: string[];
+            newSkills: string[];
+            roleMatch: null | string;
+            matchesTargetRole: boolean;
+            nextStepAfter: null | string;
+            usuallyAfter: string[];
+            /** Format: uuid */
+            addedCertificationId: null | string;
         };
         ReviewCard: {
             /** Format: uuid */
@@ -1274,6 +1423,14 @@ export interface components {
         };
         SaveMockAnswerRequest: {
             selected: number[];
+        };
+        SaveProfileRequest: {
+            skills: null | string[];
+            roles: null | string[];
+            heldCertifications: null | string[];
+            /** Format: int32 */
+            yearsExperience: null | number;
+            targetRole: null | string;
         };
         SearchHit: {
             /** Format: uuid */
@@ -2622,6 +2779,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GenerationJobView"];
+                };
+            };
+        };
+    };
+    GetCareerProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileView"];
+                };
+            };
+        };
+    };
+    SaveCareerProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileView"];
+                };
+            };
+        };
+    };
+    DeleteCareerProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadCvText: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReadCvTextRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileDraft"];
+                };
+            };
+        };
+    };
+    ReadCvFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileDraft"];
+                };
+            };
+        };
+    };
+    GetRecommendations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationsView"];
+                };
+            };
+        };
+    };
+    GetRecommendationAdvice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdviceView"];
                 };
             };
         };
