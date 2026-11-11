@@ -1,3 +1,4 @@
+using System.Text;
 using CertCoach.Application.Activity;
 using CertCoach.Application.Dashboard;
 using CertCoach.Application.Plans;
@@ -29,6 +30,13 @@ internal static class PlanEndpoints
                 return TypedResults.Created($"/api/plans/{plan.Id}", plan);
             })
             .WithName("CreatePlan");
+
+        group.MapGet("/{planId:guid}/calendar.ics", async (Guid planId, string? at, PlanService service, CancellationToken ct) =>
+                TypedResults.File(Encoding.UTF8.GetBytes(await service.CalendarAsync(planId, at, ct)), PlanCalendar.ContentType, "study-plan.ics"))
+            .WithName("GetPlanCalendar")
+            .WithSummary("The plan's remaining sessions and exam day as an iCalendar file to import into a calendar.")
+            .WithDescription("Sessions are all-day events, or timed from ?at=HH:mm in local time.")
+            .Produces(StatusCodes.Status200OK, contentType: "text/calendar");
 
         group.MapGet("/", (PlanService service, CancellationToken ct) => service.ListAsync(ct))
             .WithName("ListPlans");
