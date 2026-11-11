@@ -31,7 +31,7 @@ test("read the sample CV, save the profile and get recommendations", async ({ pa
   await expect(page.getByRole("heading", { name: "Recommended for you" })).toBeVisible();
   const cards = page.locator(".recommendation");
   await expect(cards).toHaveCount(8);
-  await expect(cards.filter({ hasText: "AI-200" })).toContainText("follows AZ-900, which you hold");
+  await expect(cards.filter({ hasText: "AI-200:" })).toContainText("follows AZ-900, which you hold");
   await expect(cards.first()).toContainText("You already know:");
   await expect(cards.first()).toContainText("the role you're aiming for");
   await expect(page.locator(".recommendation", { hasText: "AZ-900:" })).toHaveCount(0);
