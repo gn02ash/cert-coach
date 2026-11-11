@@ -23,6 +23,11 @@ import {
   type StartMockExamRequest,
   type ReadinessReport,
   type ActivityView,
+  type AdviceView,
+  type ProfileDraft,
+  type ProfileView,
+  type RecommendationsView,
+  type SaveProfileRequest,
   type PlanPreview,
   type PlanRequest,
   type PlanView,
@@ -356,3 +361,47 @@ export const useReadiness = (certificationId: string) =>
 /** Keyed under the dashboard, so anything that refreshes the dashboard (a session done, an answer) refreshes it too. */
 export const useActivity = () =>
   useQuery({ queryKey: [...keys.dashboard, "activity"], queryFn: () => api<ActivityView>("/api/activity") });
+
+const careerKeys = { profile: ["career", "profile"] as const, recommendations: ["career", "recommendations"] as const };
+
+export const useCareerProfile = () =>
+  useQuery({ queryKey: careerKeys.profile, queryFn: () => api<ProfileView>("/api/career/profile") });
+
+export function useSaveCareerProfile() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: SaveProfileRequest) => api<ProfileView>("/api/career/profile", "PUT", request),
+    onSuccess: (profile) => {
+      client.setQueryData(careerKeys.profile, profile);
+      void client.invalidateQueries({ queryKey: careerKeys.recommendations });
+    },
+  });
+}
+
+export function useDeleteCareerProfile() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<void>("/api/career/profile", "DELETE"),
+    onSuccess: () => {
+      client.removeQueries({ queryKey: careerKeys.recommendations });
+      return client.invalidateQueries({ queryKey: careerKeys.profile });
+    },
+  });
+}
+
+/** Reads a CV, pasted or as a PDF, into a draft profile. Nothing is stored. */
+export const useReadCv = () =>
+  useMutation({
+    mutationFn: (cv: { text: string } | { file: File }) => {
+      if ("text" in cv) return api<ProfileDraft>("/api/career/cv/text", "POST", cv);
+      const form = new FormData();
+      form.append("file", cv.file);
+      return upload<ProfileDraft>("/api/career/cv/file", form);
+    },
+  });
+
+export const useRecommendations = () =>
+  useQuery({ queryKey: careerKeys.recommendations, queryFn: () => api<RecommendationsView>("/api/career/recommendations") });
+
+export const useAdvice = () =>
+  useMutation({ mutationFn: () => api<AdviceView>("/api/career/recommendations/advice", "POST") });

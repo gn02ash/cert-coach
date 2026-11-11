@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import type { CertificationDetail, CertificationStatus, DomainDraft, OutlineImport, SaveCertificationRequest } from "../api/client";
 import { useAiStatus, useCertification, useImportOutline, useParseOutline, useSaveCertification } from "../api/hooks";
 import { OutlineEditor } from "../components/OutlineEditor";
@@ -65,9 +65,21 @@ export function CertificationEditorPage() {
   const ai = useAiStatus();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState<SaveCertificationRequest>(emptyForm);
+  // A recommendation links here with the exam's details, ready to import its outline from the official page.
+  const [params] = useSearchParams();
+  const suggestedUrl = id ? "" : (params.get("url") ?? "");
+  const [form, setForm] = useState<SaveCertificationRequest>(() =>
+    id
+      ? emptyForm
+      : {
+          ...emptyForm,
+          examCode: params.get("examCode") ?? "",
+          name: params.get("name") ?? "",
+          vendor: params.get("vendor") ?? emptyForm.vendor,
+        },
+  );
   const [pasted, setPasted] = useState("");
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(suggestedUrl);
   const [showPaste, setShowPaste] = useState(!id);
 
   useEffect(() => {

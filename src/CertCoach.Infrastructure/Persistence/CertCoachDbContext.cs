@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Domain.Careers;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
@@ -34,6 +35,8 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
 
     public DbSet<MockExam> MockExams => Set<MockExam>();
 
+    public DbSet<CareerProfile> CareerProfiles => Set<CareerProfile>();
+
     private Guid? OwnerFilter => currentUser?.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,6 +53,7 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
         modelBuilder.Entity<GenerationJob>().HasQueryFilter(j => OwnerFilter == null || j.OwnerId == OwnerFilter);
         modelBuilder.Entity<ReviewLog>().HasQueryFilter(r => OwnerFilter == null || r.OwnerId == OwnerFilter);
         modelBuilder.Entity<MockExam>().HasQueryFilter(e => OwnerFilter == null || e.OwnerId == OwnerFilter);
+        modelBuilder.Entity<CareerProfile>().HasQueryFilter(p => OwnerFilter == null || p.OwnerId == OwnerFilter);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
