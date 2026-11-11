@@ -1707,6 +1707,179 @@
           }
         }
       }
+    },
+    "/api/career/profile": {
+      "get": {
+        "tags": [
+          "Career"
+        ],
+        "operationId": "GetCareerProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Career"
+        ],
+        "summary": "Save the profile recommendations are based on: skills, roles, experience, certifications held, target role.",
+        "operationId": "SaveCareerProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Career"
+        ],
+        "operationId": "DeleteCareerProfile",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/career/cv/text": {
+      "post": {
+        "tags": [
+          "Career"
+        ],
+        "summary": "Read a pasted CV into a draft profile. The CV is not stored.",
+        "description": "With a chat provider the text is sent to it to be read; without one, known skills, job titles and exam codes are matched.",
+        "operationId": "ReadCvText",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadCvTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/career/cv/file": {
+      "post": {
+        "tags": [
+          "Career"
+        ],
+        "summary": "Read a CV uploaded as a PDF into a draft profile. The file is read in memory and not stored.",
+        "operationId": "ReadCvFile",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/career/recommendations": {
+      "get": {
+        "tags": [
+          "Career"
+        ],
+        "summary": "Certifications from the built-in catalogue ranked for the saved profile, with the reasons for each score.",
+        "operationId": "GetRecommendations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationsView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/career/recommendations/advice": {
+      "post": {
+        "tags": [
+          "Career"
+        ],
+        "summary": "The chat model's order and reasons for the recommended certifications. Needs a chat provider.",
+        "operationId": "GetRecommendationAdvice",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdviceView"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1762,6 +1935,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ActivityDay"
+            }
+          }
+        }
+      },
+      "AdviceItem": {
+        "required": [
+          "code",
+          "rationale"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      },
+      "AdviceView": {
+        "required": [
+          "overview",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "overview": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdviceItem"
             }
           }
         }
@@ -2026,6 +2232,14 @@
           }
         }
       },
+      "CertificationLevel": {
+        "enum": [
+          "Fundamentals",
+          "Associate",
+          "Professional",
+          "Specialty"
+        ]
+      },
       "CertificationStatus": {
         "enum": [
           "Active",
@@ -2139,6 +2353,12 @@
             "type": "string"
           }
         }
+      },
+      "CvReadMethod": {
+        "enum": [
+          "Offline",
+          "Ai"
+        ]
       },
       "DashboardView": {
         "required": [
@@ -3408,6 +3628,119 @@
           }
         }
       },
+      "ProfileDraft": {
+        "required": [
+          "skills",
+          "roles",
+          "heldCertifications",
+          "yearsExperience",
+          "method",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "heldCertifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsExperience": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "method": {
+            "$ref": "#/components/schemas/CvReadMethod"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ProfileView": {
+        "required": [
+          "exists",
+          "skills",
+          "roles",
+          "heldCertifications",
+          "yearsExperience",
+          "targetRole",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "heldCertifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsExperience": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "targetRole": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ReadCvTextRequest": {
+        "required": [
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
       "ReadinessReport": {
         "required": [
           "overall",
@@ -3432,6 +3765,114 @@
             "items": {
               "$ref": "#/components/schemas/DomainReadiness"
             }
+          }
+        }
+      },
+      "RecommendationsView": {
+        "required": [
+          "catalogueCheckedOn",
+          "catalogueSize",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "catalogueCheckedOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "catalogueSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecommendationView"
+            }
+          }
+        }
+      },
+      "RecommendationView": {
+        "required": [
+          "code",
+          "name",
+          "vendor",
+          "level",
+          "summary",
+          "url",
+          "score",
+          "matchedSkills",
+          "newSkills",
+          "roleMatch",
+          "matchesTargetRole",
+          "nextStepAfter",
+          "usuallyAfter",
+          "addedCertificationId"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "level": {
+            "$ref": "#/components/schemas/CertificationLevel"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "matchedSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "newSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roleMatch": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "matchesTargetRole": {
+            "type": "boolean"
+          },
+          "nextStepAfter": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "usuallyAfter": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "addedCertificationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -3672,6 +4113,58 @@
               "type": "integer",
               "format": "int32"
             }
+          }
+        }
+      },
+      "SaveProfileRequest": {
+        "required": [
+          "skills",
+          "roles",
+          "heldCertifications",
+          "yearsExperience",
+          "targetRole"
+        ],
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "heldCertifications": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "yearsExperience": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "targetRole": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4149,6 +4642,9 @@
     },
     {
       "name": "Mock exams"
+    },
+    {
+      "name": "Career"
     }
   ]
 }
