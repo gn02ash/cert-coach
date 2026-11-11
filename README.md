@@ -33,6 +33,8 @@ Then practise: exam-style questions and flashcards written from your documents, 
 
 ![The dashboard after practising: study streak, activity calendar and readiness per domain](docs/screenshots/13-dashboard-practice.png)
 
+![A profile read from the sample CV and the certifications ranked for it, with reasons](docs/screenshots/14-career.png)
+
 The screenshots are taken by the end-to-end test in CI against `docker compose up`, in offline mode, so Ask shows quoted sentences rather than a written answer and practice items are fill-in-the-blank.
 
 </details>
@@ -66,7 +68,7 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Readiness per domain.** Objectives recalled × recent accuracy, shrunk toward 50% until there's enough data, with the formula shown. An estimate from your own questions, not a pass prediction.
 - **Practice items to edit.** Write your own flashcards, suspend or delete items, and keep them when the outline changes: items follow the objective with the same text.
 
-**Study tools** (this release)
+**Study tools**
 
 - **Weak spots and domain practice.** Extra practice outside the schedule: the items you keep missing (ranked by lapses, a failed last answer and lost ease), or one exam domain at a time, straight from the readiness card.
 - **Study streak and activity calendar.** Reviews and completed sessions per day in your time zone, your current and longest streak, and one square per day for the last 12 weeks.
@@ -74,12 +76,19 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Edit any item.** Fix a question, its options, the correct answers or the explanation in place. The review schedule is kept.
 - **Export to Anki.** A certification's active items as a text file for Anki's File → Import, tagged with the exam code and domain.
 
+**Phase 4: what to take next** (this release)
+
+- **Profile from your CV.** Paste your CV or upload it as a PDF and Cert Coach reads your skills, roles, years of experience and certifications into a profile you can edit. The CV itself is never stored. Without a chat model it is read on the server by matching known skills, job titles and exam codes; with one, the model reads it, and the page tells you first that the text goes to that provider.
+- **Ranked recommendations.** Certifications from a built-in catalogue of 47 public exams (Microsoft, AWS, Google Cloud, Linux Foundation, HashiCorp, CompTIA), each checked against its vendor page. Every score is explained: what you already know, what you'd learn, whether it suits your role or the one you're aiming for, and what it follows or is usually taken after.
+- **AI advice, on request.** With a chat model, **Explain with AI** orders and explains the same candidates for your profile. It can't add an exam that isn't in the catalogue.
+- **One click to start.** **Add to my certifications** opens the editor with the exam's details and official page filled in, ready for **Import from URL**.
+
 **Roadmap**
 
 - [x] Phase 2: upload your PDFs, RAG answers with page citations, and a retrieval evaluation set
 - [x] Phase 3: generated practice questions and flashcards, SM-2 spaced repetition, mock exams, readiness score per domain, outline import from a URL
 - [x] Study tools: weak-spot practice, study streak, calendar export, item editing, Anki export
-- [ ] Phase 4: certification recommendations from your CV
+- [x] Phase 4: certification recommendations from your CV
 - [ ] Phase 5: Microsoft Learn and YouTube resources per objective, and an MCP server (`get_today_session`, `quiz_me`, …)
 
 ## Run it
@@ -90,7 +99,7 @@ You need [Docker](https://docs.docker.com/get-docker/). Then:
 docker compose up --build
 ```
 
-Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**.
+Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**. For recommendations, open **Career** and click **Use the sample CV**.
 
 Everything works without configuration, in offline mode. For AI answers and semantic search, copy [`.env.example`](.env.example) to `.env` and set the `AI_*` variables, for example:
 
@@ -159,7 +168,7 @@ tools/
 web/                         React app; TypeScript types generated from the API's OpenAPI document
   e2e/                       Playwright tests that drive the Docker Compose stack in CI
 docker/                      Dockerfiles and nginx config
-samples/                     synthetic sample outline and PDF (not a real exam)
+samples/                     synthetic sample outline, PDF and CV (not a real exam or person)
 eval/                        synthetic corpus and labelled questions for the retrieval evaluation
 ```
 
@@ -237,6 +246,9 @@ flowchart LR
 | **Questions grounded or labelled** | Document-based items must cite a real passage and keep only quotes the passage contains. Items written from model knowledge are stored and shown as such, never mixed in silently. |
 | **Generation and review work offline too** | Without a chat model, items are fill-in-the-blank sentences from your PDFs, and the eval checks every one is grounded, so CI and the e2e test exercise the whole practice loop without keys. |
 | **Background jobs act as their owner** | A job's scope sets a `BackgroundUser` before any service is resolved, so search, the owner query filters and "today" work exactly as in a request. |
+| **A CV is read, not kept** | The file and its text are held in memory for one request and discarded. Only the profile the learner saves is stored, and it can be deleted. The model is told to return no names or contact details. |
+| **Recommendations from a catalogue, not from a model's memory** | Exam line-ups change: checking the catalogue against vendor pages removed six retired exams a model would happily have suggested. The scorer and the model can only rank catalogue entries, and each links to its official page. |
+| **Explainable scoring before AI** | Fixed rules rank the catalogue (skill overlap with the platform weighted, role, path, level against experience), so it works offline and every score can be traced. The model only orders and explains those candidates. |
 | **Calendar as a file, not a feed** | A subscription URL would need a long-lived secret in the link, since calendar apps can't send the session cookie. A download with stable event UIDs covers the need without one. |
 | **SM-2, logged** | A well-understood scheduler that's easy to test, with every answer in `review_logs`, so readiness is computed from history rather than stored and drifting. |
 

@@ -297,3 +297,14 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .item-editor-options legend { font-weight: 500; font-size: 0.9rem; padding: 0; margin-bottom: 0.3rem; }
 .item-editor-option { display: flex; gap: 0.5rem; align-items: center; }
 .item-editor-option input[type="radio"], .item-editor-option input[type="checkbox"] { width: auto; flex: none; padding: 0; accent-color: var(--accent); }
+
+/* Career */
+.cv-reader { padding-top: 0.6rem; }
+.role-picker { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.role-picker legend { font-weight: 500; font-size: 0.9rem; padding: 0; margin-bottom: 0.4rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.7rem; border: 1px solid var(--border); border-radius: 999px; font-weight: 400; font-size: 0.85rem; cursor: pointer; }
+.chip input { width: auto; flex: none; padding: 0; accent-color: var(--accent); }
+.chip.selected { border-color: var(--accent); background: var(--accent-soft); }
+.recommendation-title { font-size: 1.05rem; margin: 0.1rem 0 0; overflow-wrap: anywhere; }
+.recommendation-score { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.recommendation-reasons { display: grid; gap: 0.25rem; overflow-wrap: anywhere; }
