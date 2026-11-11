@@ -867,6 +867,77 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("review_logs", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Resources.StudyResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CertificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("certification_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Done")
+                        .HasColumnType("boolean")
+                        .HasColumnName("done");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_minutes");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("ObjectiveId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("objective_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("summary");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_study_resources");
+
+                    b.HasIndex("ObjectiveId")
+                        .HasDatabaseName("ix_study_resources_objective_id");
+
+                    b.HasIndex("CertificationId", "ObjectiveId")
+                        .HasDatabaseName("ix_study_resources_certification_id_objective_id");
+
+                    b.ToTable("study_resources", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1041,6 +1112,22 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_review_logs_practice_items_item_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Resources.StudyResource", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Certifications.Certification", null)
+                        .WithMany()
+                        .HasForeignKey("CertificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_study_resources_certifications_certification_id");
+
+                    b.HasOne("CertCoach.Domain.Certifications.Objective", null)
+                        .WithMany()
+                        .HasForeignKey("ObjectiveId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_study_resources_objectives_objective_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>

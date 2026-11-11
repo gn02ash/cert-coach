@@ -12,6 +12,7 @@ import { NewPlanPage } from "./pages/NewPlanPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlanPage } from "./pages/PlanPage";
 import { PracticeItemsPage } from "./pages/PracticeItemsPage";
+import { ResourcesPage } from "./pages/ResourcesPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { MockExamPage } from "./pages/MockExamPage";
 import { MockExamStartPage } from "./pages/MockExamStartPage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "certifications/:id", element: <CertificationEditorPage /> },
       { path: "certifications/:id/plan", element: <NewPlanPage /> },
       { path: "certifications/:id/practice", element: <PracticeItemsPage /> },
+      { path: "certifications/:id/resources", element: <ResourcesPage /> },
       { path: "plans/:id", element: <PlanPage /> },
       { path: "review", element: <ReviewPage /> },
       { path: "mock-exams/new", element: <MockExamStartPage /> },

@@ -4,7 +4,7 @@ import { useSessionAction } from "../api/hooks";
 import { KindBadge } from "./ui";
 
 /** A session with its objectives and, while it is still planned, Done and Missed actions. */
-export function SessionCard({ planId, session }: { planId: string; session: SessionView }) {
+export function SessionCard({ planId, session, certificationId }: { planId: string; session: SessionView; certificationId?: string }) {
   const action = useSessionAction();
   const act = (kind: "complete" | "miss") => action.mutate({ planId, sessionId: session.id!, action: kind });
 
@@ -43,6 +43,11 @@ export function SessionCard({ planId, session }: { planId: string; session: Sess
           <Link className="small" to={`/review?objectives=${session.objectives.map((o) => o.id).join(",")}`}>
             Quiz me
           </Link>
+          {certificationId && (
+            <Link className="small" to={`/certifications/${certificationId}/resources?objective=${session.objectives[0]!.id}`}>
+              Resources
+            </Link>
+          )}
         </div>
       )}
 
