@@ -169,6 +169,27 @@ public class StudyFlowTests(CertCoachApiFactory factory)
         (await GetDashboardAsync(stranger)).Plans.ShouldBeEmpty();
     }
 
+    [Fact]
+    public async Task The_plan_downloads_as_a_calendar_file()
+    {
+        var client = await factory.CreateUserClientAsync();
+        var plan = await CreatePlanAsync(client);
+
+        var response = await client.GetAsync($"/api/plans/{plan.Id}/calendar.ics?at=18:30", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Content.Headers.ContentType!.MediaType.ShouldBe("text/calendar");
+        response.Content.Headers.ContentDisposition!.FileName.ShouldBe("study-plan.ics");
+        var ics = await response.Content.ReadAsStringAsync(Ct);
+        ics.Split("BEGIN:VEVENT").Length.ShouldBe(1 + plan.Sessions.Count + 1);
+        ics.ShouldContain("T183000");
+        ics.ShouldContain("SUMMARY:DEMO-101 exam");
+
+        (await client.GetAsync($"/api/plans/{plan.Id}/calendar.ics?at=6pm", Ct)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var other = await factory.CreateUserClientAsync();
+        (await other.GetAsync($"/api/plans/{plan.Id}/calendar.ics", Ct)).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
     private static PlanRequest PlanFor(CertificationDetail certification) => PlanFor(certification.Id);
 
     private static PlanRequest PlanFor(Guid certificationId) =>

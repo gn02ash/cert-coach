@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { useArchivePlan, usePlan, useSessionAction } from "../api/hooks";
 import { Alert, KindBadge, ShortfallNotice } from "../components/ui";
@@ -43,6 +44,7 @@ export function PlanPage() {
         )}
       </div>
 
+      {active && <CalendarExport planId={p.id} />}
       <ShortfallNotice shortfall={p.shortfall} />
       <ReadinessCard certificationId={p.certificationId} />
       {(action.error || archive.error) && <Alert tone="error">{(action.error ?? archive.error)!.message}</Alert>}
@@ -92,6 +94,23 @@ export function PlanPage() {
       <Link to="/" className="button ghost">
         Back to today
       </Link>
+    </div>
+  );
+}
+
+/** Downloads the remaining sessions as an .ics file; a start time turns all-day events into timed ones. */
+function CalendarExport({ planId }: { planId: string }) {
+  const [time, setTime] = useState("");
+  return (
+    <div className="card calendar-export">
+      <label>
+        Add the plan to your calendar
+        <span className="muted small">Optional start time. Without one, sessions are all-day events.</span>
+        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-label="Start time for study sessions" />
+      </label>
+      <a className="button ghost" href={`/api/plans/${planId}/calendar.ics${time ? `?at=${time}` : ""}`} download>
+        Download .ics
+      </a>
     </div>
   );
 }

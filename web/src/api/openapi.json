@@ -630,6 +630,39 @@
         }
       }
     },
+    "/api/plans/{planId}/calendar.ics": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "The plan's remaining sessions and exam day as an iCalendar file to import into a calendar.",
+        "description": "Sessions are all-day events, or timed from ?at=HH:mm in local time.",
+        "operationId": "GetPlanCalendar",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "at",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/plans/{planId}": {
       "get": {
         "tags": [

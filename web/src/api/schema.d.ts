@@ -307,6 +307,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plans/{planId}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The plan's remaining sessions and exam day as an iCalendar file to import into a calendar.
+         * @description Sessions are all-day events, or timed from ?at=HH:mm in local time.
+         */
+        get: operations["GetPlanCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plans/{planId}": {
         parameters: {
             query?: never;
@@ -1857,6 +1877,28 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PlanView"];
                 };
+            };
+        };
+    };
+    GetPlanCalendar: {
+        parameters: {
+            query?: {
+                at?: string;
+            };
+            header?: never;
+            path: {
+                planId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
