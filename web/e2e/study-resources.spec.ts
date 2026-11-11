@@ -31,7 +31,10 @@ test("find resources for an objective, save a link and tick it off", async ({ pa
   }
 
   await expect(saved).toBeVisible();
-  await saved.getByRole("checkbox").check();
+  // The tick shows once the server has saved it, so click and wait rather than check().
+  const done = saved.getByRole("checkbox");
+  if (!(await done.isChecked())) await done.click();
+  await expect(done).toBeChecked();
   await expect(page.getByText(/^\d+ saved · [1-9]\d* done$/)).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, "15-resources");
