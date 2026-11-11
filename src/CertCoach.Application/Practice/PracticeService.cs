@@ -20,6 +20,28 @@ public sealed class PracticeService(ICertCoachDbContext db, ICurrentUser user, U
         return await ToViewsAsync(items, objectives, ct);
     }
 
+    /// <summary>The certification's active items as a text file Anki imports, in outline order.</summary>
+    public async Task<(string Content, string FileName)> ExportAsync(Guid certificationId, CancellationToken ct)
+    {
+        var certification = await db.Certifications
+            .Include(c => c.Domains).ThenInclude(d => d.SkillAreas).ThenInclude(s => s.Objectives)
+            .SingleOrDefaultAsync(c => c.Id == certificationId && c.OwnerId == user.UserId, ct)
+            ?? throw new NotFoundException("Certification");
+        var objectives = certification.Domains
+            .SelectMany(d => d.SkillAreas.SelectMany(s => s.Objectives.Select(o => (o.Id, Domain: d.Name))))
+            .Select((o, order) => (o.Id, o.Domain, Order: order))
+            .ToDictionary(o => o.Id);
+
+        var items = await db.PracticeItems
+            .Where(i => i.OwnerId == user.UserId && i.CertificationId == certificationId && i.Status == PracticeItemStatus.Active)
+            .OrderBy(i => i.CreatedAt)
+            .ToListAsync(ct);
+        var export = items
+            .OrderBy(i => i.ObjectiveId is { } o && objectives.TryGetValue(o, out var found) ? found.Order : int.MaxValue)
+            .Select(i => new ExportItem(i, i.ObjectiveId is { } o && objectives.TryGetValue(o, out var found) ? found.Domain : null));
+        return (AnkiExport.Build(certification.ExamCode, export), $"{certification.ExamCode}-anki.txt");
+    }
+
     public async Task<PracticeItemView> CreateAsync(CreatePracticeItemRequest request, CancellationToken ct)
     {
         var objectives = await ObjectiveTextsAsync(request.CertificationId, ct);

@@ -47,6 +47,31 @@ public class PracticeItemTests(CertCoachApiFactory factory)
     }
 
     [Fact]
+    public async Task Active_items_export_for_anki_in_outline_order()
+    {
+        var client = await factory.CreateUserClientAsync();
+        var certification = await SendAsync<CertificationDetail>(client, HttpMethod.Post, "/api/certifications", Certification("Merge rankings", "Chunk documents"));
+        var objectives = certification.Domains[0].SkillAreas[0].Objectives;
+        await SendAsync<PracticeItemView>(client, HttpMethod.Post, "/api/practice/items", new CreatePracticeItemRequest(
+            certification.Id, objectives[1].Id, PracticeItemKind.Flashcard, "Second objective", null, null, "Back 2"));
+        await SendAsync<PracticeItemView>(client, HttpMethod.Post, "/api/practice/items", new CreatePracticeItemRequest(
+            certification.Id, objectives[0].Id, PracticeItemKind.SingleChoice, "First objective?", ["A1", "B1", "C1"], [1], "Why."));
+        var suspended = await SendAsync<PracticeItemView>(client, HttpMethod.Post, "/api/practice/items", new CreatePracticeItemRequest(
+            certification.Id, null, PracticeItemKind.Flashcard, "Suspended card", null, null, "Back"));
+        await SendAsync<PracticeItemView>(client, HttpMethod.Put, $"/api/practice/items/{suspended.Id}/status", new SetPracticeItemStatusRequest(PracticeItemStatus.Suspended));
+
+        var response = await client.GetAsync($"/api/practice/items/export?certificationId={certification.Id}", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Content.Headers.ContentDisposition!.FileName.ShouldBe($"{certification.ExamCode}-anki.txt");
+        var text = await response.Content.ReadAsStringAsync(Ct);
+        text.ShouldStartWith("#separator:tab\n");
+        text.IndexOf("First objective?", StringComparison.Ordinal).ShouldBeLessThan(text.IndexOf("Second objective", StringComparison.Ordinal));
+        text.ShouldContain("\"B. B1\n\nWhy.\"\t\"" + certification.ExamCode + " Build-it\"");
+        text.ShouldNotContain("Suspended card");
+    }
+
+    [Fact]
     public async Task Invalid_items_and_other_learners_items_are_refused()
     {
         var client = await factory.CreateUserClientAsync();

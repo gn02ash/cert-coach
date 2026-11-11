@@ -1125,6 +1125,31 @@
         }
       }
     },
+    "/api/practice/items/export": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "summary": "A certification's active items as a text file for Anki's File > Import.",
+        "operationId": "ExportPracticeItems",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/practice/items/{id}": {
       "put": {
         "tags": [

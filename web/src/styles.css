@@ -289,3 +289,11 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .calendar-export label { flex: 1 1 16rem; }
 .calendar-export input { max-width: 9rem; }
 .calendar-export > .button { align-self: flex-end; }
+
+/* Item editor */
+[hidden] { display: none !important; }
+.item-editor { padding: 0.6rem 0 0.2rem 0; }
+.item-editor-options { border: none; padding: 0; margin: 0; }
+.item-editor-options legend { font-weight: 500; font-size: 0.9rem; padding: 0; margin-bottom: 0.3rem; }
+.item-editor-option { display: flex; gap: 0.5rem; align-items: center; }
+.item-editor-option input[type="radio"], .item-editor-option input[type="checkbox"] { width: auto; flex: none; padding: 0; accent-color: var(--accent); }
