@@ -315,3 +315,9 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .resource-summary { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .resource-check input { width: auto; margin-top: 0.25rem; accent-color: var(--accent); }
 .resource-row.done .resource-text a { color: var(--muted); text-decoration: line-through; }
+
+/* Connect */
+.tool-list { display: grid; gap: 0.3rem; }
+.token-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.token-row code { padding: 0.4rem 0.6rem; background: var(--surface-2); border-radius: 6px; overflow-wrap: anywhere; }
+.snippet { margin: 0; padding: 0.6rem 0.75rem; background: var(--surface-2); border-radius: 8px; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }

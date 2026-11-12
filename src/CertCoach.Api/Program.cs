@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using CertCoach.Api.Auth;
 using CertCoach.Api.Endpoints;
 using CertCoach.Api.Infrastructure;
+using CertCoach.Api.Mcp;
 using CertCoach.Application;
 using CertCoach.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
@@ -23,6 +24,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCertCoachAuth(builder.Configuration);
+
+// Stateless: every MCP request stands alone, so nothing is kept in memory between calls.
+builder.Services.AddMcpServer(options => options.ServerInfo = new() { Name = "cert-coach", Version = "1.0.0" })
+    .WithHttpTransport(transport => transport.Stateless = true)
+    .WithTools<StudyTools>();
 
 // Session cookies are encrypted with Data Protection keys; keep them across container restarts.
 if (builder.Configuration["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
@@ -71,8 +77,12 @@ app.MapGroup("/api")
     .MapPracticeEndpoints()
     .MapCareerEndpoints()
     .MapResourceEndpoints()
+    .MapTokenEndpoints()
     .MapSearchEndpoints()
     .MapAskEndpoints();
+
+// AI assistants connect here with a personal access token; the session cookie is not accepted.
+app.MapMcp("/mcp").RequireAuthorization(TokenAuthenticationHandler.PolicyName);
 
 await app.RunAsync();
 

@@ -938,6 +938,63 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                     b.ToTable("study_resources", (string)null);
                 });
 
+            modelBuilder.Entity("CertCoach.Domain.Users.ApiToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_used_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("prefix");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_api_tokens");
+
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("ix_api_tokens_owner_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_api_tokens_token_hash");
+
+                    b.ToTable("api_tokens", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1128,6 +1185,16 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ObjectiveId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_study_resources_objectives_objective_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Users.ApiToken", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_api_tokens_users_owner_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Users.User", b =>

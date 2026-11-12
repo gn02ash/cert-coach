@@ -24,6 +24,9 @@ import {
   type ReadinessReport,
   type ActivityView,
   type AdviceView,
+  type ApiTokenView,
+  type CreateApiTokenRequest,
+  type CreatedApiToken,
   type ResourceSuggestions,
   type ResourceView,
   type SaveResourceRequest,
@@ -460,5 +463,25 @@ export function useDeleteResource(certificationId: string) {
       void client.invalidateQueries({ queryKey: resourceKeys.saved(certificationId) });
       void client.invalidateQueries({ queryKey: ["resource-suggestions"] });
     },
+  });
+}
+
+const tokenKey = ["api-tokens"] as const;
+
+export const useApiTokens = () => useQuery({ queryKey: tokenKey, queryFn: () => api<ApiTokenView[]>("/api/tokens") });
+
+export function useCreateApiToken() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreateApiTokenRequest) => api<CreatedApiToken>("/api/tokens", "POST", request),
+    onSuccess: () => client.invalidateQueries({ queryKey: tokenKey }),
+  });
+}
+
+export function useRevokeApiToken() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/api/tokens/${id}`, "DELETE"),
+    onSuccess: () => client.invalidateQueries({ queryKey: tokenKey }),
   });
 }

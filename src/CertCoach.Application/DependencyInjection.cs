@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<CareerService>();
         services.AddScoped<ResourceService>();
         services.AddScoped<UserAccountService>();
+        services.AddScoped<ApiTokenService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();
         services.AddScoped<ReviewService>();

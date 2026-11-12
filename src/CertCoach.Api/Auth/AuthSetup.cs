@@ -81,7 +81,11 @@ internal static class AuthSetup
             });
         }
 
-        services.AddAuthorization();
+        auth.AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.SchemeName, _ => { });
+        services.AddAuthorizationBuilder()
+            .AddPolicy(TokenAuthenticationHandler.PolicyName, policy => policy
+                .AddAuthenticationSchemes(TokenAuthenticationHandler.SchemeName)
+                .RequireAuthenticatedUser());
         services.AddHttpContextAccessor();
         // A background job's scope sets its owner first; requests use the session cookie.
         services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<BackgroundUser>() is { IsSet: true } job
