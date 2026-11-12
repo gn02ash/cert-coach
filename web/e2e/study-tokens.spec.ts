@@ -42,6 +42,8 @@ test("create a token, call the MCP server with it, and revoke it", async ({ page
   // The token is hidden before the screenshot, so no token ends up in the README.
   await page.getByRole("button", { name: "I've saved it" }).click();
   await expect(page.getByTestId("new-token")).toHaveCount(0);
+  // The list was loaded before the token was used, so load it again.
+  await page.reload();
   const row = page.locator(".resource-row", { hasText: name });
   await expect(row).toContainText("last used");
   await page.evaluate(() => window.scrollTo(0, 0));
