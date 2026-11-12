@@ -24,6 +24,14 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCertCoachAuth(builder.Configuration);
+builder.Services.AddCertCoachRateLimits(builder.Configuration);
+
+// JSON requests are small; the upload endpoints raise the limit for themselves. No server banner either.
+builder.WebHost.ConfigureKestrel(kestrel =>
+{
+    kestrel.Limits.MaxRequestBodySize = 2 * 1024 * 1024;
+    kestrel.AddServerHeader = false;
+});
 
 // Stateless: every MCP request stands alone, so nothing is kept in memory between calls.
 builder.Services.AddMcpServer(options => options.ServerInfo = new() { Name = "cert-coach", Version = "1.0.0" })
@@ -59,6 +67,14 @@ app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// After authentication, so limits are counted per learner.
+app.UseRateLimiter();
+
+if (app.Services.GetRequiredService<AuthOptions>().DevLogin.Enabled)
+{
+    StartupLog.DevLoginEnabled(app.Logger);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -69,6 +85,7 @@ app.MapAuthEndpoints();
 
 app.MapGroup("/api")
     .RequireAuthorization()
+    .RequireRateLimiting(RateLimits.Api)
     .AddEndpointFilter<CsrfHeaderFilter>()
     .MapCertificationEndpoints()
     .MapPlanEndpoints()
@@ -82,7 +99,7 @@ app.MapGroup("/api")
     .MapAskEndpoints();
 
 // AI assistants connect here with a personal access token; the session cookie is not accepted.
-app.MapMcp("/mcp").RequireAuthorization(TokenAuthenticationHandler.PolicyName);
+app.MapMcp("/mcp").RequireAuthorization(TokenAuthenticationHandler.PolicyName).RequireRateLimiting(RateLimits.Mcp);
 
 await app.RunAsync();
 

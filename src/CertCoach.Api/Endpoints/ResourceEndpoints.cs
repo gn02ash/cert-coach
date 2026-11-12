@@ -1,3 +1,4 @@
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Resources;
 
 namespace CertCoach.Api.Endpoints;
@@ -9,6 +10,7 @@ internal static class ResourceEndpoints
         var group = api.MapGroup("/resources").WithTags("Resources");
 
         group.MapGet("/suggestions", (Guid objectiveId, ResourceService service, CancellationToken ct) => service.SuggestAsync(objectiveId, ct))
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("SuggestResources")
             .WithSummary("Microsoft Learn modules and YouTube videos that cover an objective.")
             .WithDescription("Learn modules come from Microsoft's public catalogue. YouTube results need YOUTUBE_API_KEY; a search link is always returned.");

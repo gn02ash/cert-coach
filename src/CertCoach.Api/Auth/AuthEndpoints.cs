@@ -1,3 +1,4 @@
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Users;
 using Microsoft.AspNetCore.Authentication;
@@ -66,6 +67,7 @@ internal static class AuthEndpoints
                     ? Results.Challenge(new AuthenticationProperties { RedirectUri = target }, [provider])
                     : Results.NotFound();
             })
+            .RequireRateLimiting(RateLimits.SignIn)
             .WithName("Login");
 
         group.MapPost("/logout", async (HttpContext http) =>
@@ -73,6 +75,7 @@ internal static class AuthEndpoints
                 await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return Results.NoContent();
             })
+            .AddEndpointFilter<CsrfHeaderFilter>()
             .WithName("Logout");
 
         group.MapGet("/me", (HttpContext http, ICurrentUser user) => new UserProfile(
