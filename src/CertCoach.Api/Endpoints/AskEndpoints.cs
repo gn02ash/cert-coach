@@ -1,5 +1,6 @@
 using System.Net.ServerSentEvents;
 using System.Runtime.CompilerServices;
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Ask;
 
 namespace CertCoach.Api.Endpoints;
@@ -10,6 +11,7 @@ internal static class AskEndpoints
     {
         api.MapPost("/ask", (AskRequest request, AskService service, CancellationToken ct) =>
                 TypedResults.ServerSentEvents(ToSse(service.AskAsync(request, ct), ct)))
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("Ask")
             .WithTags("Ask")
             .WithSummary("Answer a question from your documents, streamed as server-sent events: sources, then deltas, then done.");

@@ -53,3 +53,18 @@ test("the API rejects unauthenticated calls", async ({ request }) => {
   const response = await request.get("/api/dashboard");
   expect(response.status()).toBe(401);
 });
+
+test("pages carry the security headers and the API doesn't advertise its server", async ({ request }) => {
+  const page = await request.get("/");
+  const headers = page.headers();
+  expect(headers["content-security-policy"]).toContain("script-src 'self'");
+  expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["server"]).toBe("nginx");
+
+  const api = await request.get("/health");
+  expect(api.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(api.headers()["content-security-policy"]).toBeUndefined();
+});

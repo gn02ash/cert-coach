@@ -53,6 +53,9 @@ public class AuthTests(CertCoachApiFactory factory)
         me.ShouldNotBeNull().Id.ShouldBe(AuthSetup.DevUserId);
         (await client.GetAsync("/api/dashboard", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
 
+        // Signing someone out from another site is a nuisance worth blocking, so logout needs the header too.
+        (await client.PostAsync("/auth/logout", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        client.DefaultRequestHeaders.Add(CsrfHeader, "1");
         (await client.PostAsync("/auth/logout", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await client.GetAsync("/auth/me", Ct)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -99,6 +102,27 @@ public class AuthTests(CertCoachApiFactory factory)
         invalid.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
         await client.PutAsJsonAsync("/auth/me/time-zone", new TimeZoneRequest("UTC"), Json, Ct);
+    }
+
+    [Fact]
+    public async Task Costly_endpoints_are_rate_limited_per_learner()
+    {
+        var client = await factory.CreateUserClientAsync();
+        var other = await factory.CreateUserClientAsync();
+        var cv = new CertCoach.Application.Careers.ReadCvTextRequest(new string('x', 40) + " developer with C# and Azure experience.");
+
+        HttpResponseMessage? last = null;
+        for (var i = 0; i <= 30; i++)
+        {
+            last = await client.PostAsJsonAsync("/api/career/cv/text", cv, Json, Ct);
+        }
+
+        last!.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
+        last.Headers.RetryAfter.ShouldNotBeNull();
+
+        // Another learner, and the rest of the API, are unaffected.
+        (await other.PostAsJsonAsync("/api/career/cv/text", cv, Json, Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await client.GetAsync("/api/dashboard", Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     private HttpClient NoRedirectClient() =>

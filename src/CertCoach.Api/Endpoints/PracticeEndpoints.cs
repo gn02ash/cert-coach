@@ -1,4 +1,5 @@
 using System.Text;
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Practice;
 using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
@@ -108,6 +109,7 @@ internal static class PracticeEndpoints
                 var run = await service.StartAsync(request, ct);
                 return TypedResults.Accepted($"/api/practice/generations/{run.Id}", run);
             })
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("StartGeneration")
             .WithSummary("Write questions and flashcards in the background for a certification, a domain or an objective.")
             .WithDescription("With a chat provider, items are written from your documents with citations, or from the model's knowledge when no document covers an objective. Offline, they are fill-in-the-blank items from your documents.");
