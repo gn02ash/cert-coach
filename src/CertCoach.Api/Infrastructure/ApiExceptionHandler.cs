@@ -15,6 +15,7 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails)
             DomainException => (StatusCodes.Status400BadRequest, "The request breaks a rule."),
             NotFoundException => (StatusCodes.Status404NotFound, "Not found."),
             ConflictException => (StatusCodes.Status409Conflict, "Conflict."),
+            AiAllowanceExceededException => (StatusCodes.Status402PaymentRequired, "AI allowance used up."),
             _ => (0, string.Empty),
         };
 

@@ -96,7 +96,8 @@ app.MapGroup("/api")
     .MapResourceEndpoints()
     .MapTokenEndpoints()
     .MapSearchEndpoints()
-    .MapAskEndpoints();
+    .MapAskEndpoints()
+    .MapBillingEndpoints();
 
 // AI assistants connect here with a personal access token; the session cookie is not accepted.
 app.MapMcp("/mcp").RequireAuthorization(TokenAuthenticationHandler.PolicyName).RequireRateLimiting(RateLimits.Mcp);

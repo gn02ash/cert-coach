@@ -26,6 +26,50 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CertCoach.Domain.Billing.AiUsage", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("date")
+                        .HasColumnName("month");
+
+                    b.Property<int>("Calls")
+                        .HasColumnType("integer")
+                        .HasColumnName("calls");
+
+                    b.Property<long>("Units")
+                        .HasColumnType("bigint")
+                        .HasColumnName("units");
+
+                    b.HasKey("UserId", "Month")
+                        .HasName("pk_ai_usage");
+
+                    b.ToTable("ai_usage", (string)null);
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Billing.BillingAccount", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset?>("ProUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("pro_until");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("UserId")
+                        .HasName("pk_billing_accounts");
+
+                    b.ToTable("billing_accounts", (string)null);
+                });
+
             modelBuilder.Entity("CertCoach.Domain.Careers.CareerProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1030,6 +1074,26 @@ namespace CertCoach.Infrastructure.Persistence.Migrations
                         .HasName("pk_users");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Billing.AiUsage", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ai_usage_users_user_id");
+                });
+
+            modelBuilder.Entity("CertCoach.Domain.Billing.BillingAccount", b =>
+                {
+                    b.HasOne("CertCoach.Domain.Users.User", null)
+                        .WithOne()
+                        .HasForeignKey("CertCoach.Domain.Billing.BillingAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_billing_accounts_users_user_id");
                 });
 
             modelBuilder.Entity("CertCoach.Domain.Certifications.Certification", b =>

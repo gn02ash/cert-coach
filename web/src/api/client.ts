@@ -62,6 +62,7 @@ export type ResourceSuggestions = Schemas["ResourceSuggestions"];
 export type SuggestedResource = Schemas["SuggestedResource"];
 export type SaveResourceRequest = Schemas["SaveResourceRequest"];
 export type ActivityDay = Schemas["ActivityDay"];
+export type AiAllowanceView = Schemas["AiAllowanceView"];
 
 /** The answer stream isn't described by OpenAPI, so these mirror the server's AskEvent records by hand. */
 export interface AskSource {

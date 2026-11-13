@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Anthropic;
 using CertCoach.Application.Ai;
+using CertCoach.Application.Billing;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +30,12 @@ internal static class AiSetup
         services.AddSingleton(sp => Describe(sp.GetRequiredService<IOptions<AiOptions>>().Value));
 
         // Clients are built on first use, so tooling that starts the host (OpenAPI generation) needs no keys.
-        services.AddChatClient(sp => CreateChatClient(sp.GetRequiredService<IOptions<AiOptions>>().Value.Chat))
+        services.AddKeyedChatClient(MeteredChatClient.ProviderClientKey, sp => CreateChatClient(sp.GetRequiredService<IOptions<AiOptions>>().Value.Chat))
             .UseLogging();
+
+        // Features get the provider client behind the allowance meter, scoped to the learner the call is for.
+        services.AddScoped<IChatClient>(sp => new MeteredChatClient(
+            sp.GetRequiredKeyedService<IChatClient>(MeteredChatClient.ProviderClientKey), sp.GetRequiredService<AiAllowance>()));
         services.AddEmbeddingGenerator(sp => CreateEmbeddingGenerator(sp.GetRequiredService<IOptions<AiOptions>>().Value.Embeddings))
             .UseLogging();
 

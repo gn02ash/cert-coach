@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Application.Billing;
 using CertCoach.Application.Certifications.Outlines.Import;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
@@ -35,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<ICertCoachDbContext>(sp => sp.GetRequiredService<CertCoachDbContext>());
         services.AddHealthChecks().AddDbContextCheck<CertCoachDbContext>("database");
         services.AddAi(configuration);
+        services.AddSingleton(configuration.GetSection(BillingOptions.SectionName).Get<BillingOptions>() ?? new BillingOptions());
+        services.AddScoped<IAiUsageLedger, PostgresAiUsageLedger>();
         services.AddSingleton<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddSingleton<ITokenCounter, TiktokenTokenCounter>();
         services.AddHttpClient<IWebPageFetcher, HttpWebPageFetcher>(http => http.Timeout = HttpWebPageFetcher.Timeout)
