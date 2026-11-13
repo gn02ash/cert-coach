@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:8080";
+
 // End-to-end smoke test against the running Docker Compose stack (docker compose up --wait).
 export default defineConfig({
   testDir: "e2e",
@@ -8,7 +10,10 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
+    baseURL,
+    // The welcome tour opens on a browser's first visit and would cover what the tests click; tour.spec.ts
+    // starts without this to test the tour itself.
+    storageState: { cookies: [], origins: [{ origin: new URL(baseURL).origin, localStorage: [{ name: "certcoach.tour", value: "done" }] }] },
     viewport: { width: 1280, height: 860 },
     colorScheme: "light",
     trace: "retain-on-failure",

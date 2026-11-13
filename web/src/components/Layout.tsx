@@ -1,7 +1,25 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useDashboard, useLogout, useMe } from "../api/hooks";
+import { TourProvider, useStartTour } from "./WelcomeTour";
 
 export function Layout() {
+  return (
+    <TourProvider>
+      <Shell />
+    </TourProvider>
+  );
+}
+
+function TourButton() {
+  const start = useStartTour();
+  return (
+    <button className="button ghost small" onClick={start} title="A one-minute tour of where everything is">
+      Tour
+    </button>
+  );
+}
+
+function Shell() {
   const me = useMe();
   const due = useDashboard().data?.reviewDue ?? 0;
   const logout = useLogout();
@@ -18,21 +36,30 @@ export function Layout() {
             Cert Coach
           </NavLink>
           <nav className="nav">
-            <NavLink to="/" end>
+            <NavLink to="/" end data-tour="today">
               Today
             </NavLink>
-            <NavLink to="/review">
+            <NavLink to="/review" data-tour="review">
               Review{due > 0 && <span className="nav-count" aria-label={`${due} due`}>{due}</span>}
             </NavLink>
-            <NavLink to="/certifications">Certifications</NavLink>
-            <NavLink to="/library">Library</NavLink>
+            <NavLink to="/certifications" data-tour="certifications">
+              Certifications
+            </NavLink>
+            <NavLink to="/library" data-tour="library">
+              Library
+            </NavLink>
             <NavLink to="/search">Search</NavLink>
             <NavLink to="/ask">Ask</NavLink>
-            <NavLink to="/career">Career</NavLink>
-            <NavLink to="/connect">Connect</NavLink>
+            <NavLink to="/career" data-tour="career">
+              Career
+            </NavLink>
+            <NavLink to="/connect" data-tour="connect">
+              Connect
+            </NavLink>
           </nav>
           <div className="user">
             <span className="user-name">{me.data?.displayName}</span>
+            <TourButton />
             <button
               className="button ghost small"
               onClick={() => logout.mutate(undefined, { onSuccess: () => navigate("/login") })}
