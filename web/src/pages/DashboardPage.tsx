@@ -5,12 +5,14 @@ import { useDashboard, useRescheduleOverdue } from "../api/hooks";
 import { ActivityCard } from "../components/ActivityCard";
 import { ReadinessCard } from "../components/ReadinessCard";
 import { SessionCard } from "../components/SessionCard";
+import { useStartTour } from "../components/WelcomeTour";
 import { EmptyState, KindBadge, ProgressBar, ShortfallNotice } from "../components/ui";
 import { formatDay, formatLongDate } from "../lib/dates";
 
 export function DashboardPage() {
   const dashboard = useDashboard();
   const reschedule = useRescheduleOverdue();
+  const startTour = useStartTour();
   const rolled = useRef(new Set<string>());
 
   // Sessions left planned on past days roll forward once per visit, so "today" is always accurate.
@@ -51,9 +53,14 @@ export function DashboardPage() {
       {plans.length === 0 && (
         <EmptyState title="No active study plan yet">
           <p className="muted">Add a certification from its official skills outline, then build a plan around your exam date.</p>
-          <Link className="button primary" to="/certifications">
-            Go to certifications
-          </Link>
+          <div className="actions">
+            <Link className="button primary" to="/certifications">
+              Go to certifications
+            </Link>
+            <button type="button" className="button ghost" onClick={startTour}>
+              Take the tour
+            </button>
+          </div>
         </EmptyState>
       )}
 
