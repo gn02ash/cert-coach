@@ -1880,6 +1880,243 @@
           }
         }
       }
+    },
+    "/api/resources/suggestions": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Microsoft Learn modules and YouTube videos that cover an objective.",
+        "description": "Learn modules come from Microsoft's public catalogue. YouTube results need YOUTUBE_API_KEY; a search link is always returned.",
+        "operationId": "SuggestResources",
+        "parameters": [
+          {
+            "name": "objectiveId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceSuggestions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "operationId": "ListResources",
+        "parameters": [
+          {
+            "name": "certificationId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Save a suggested resource, or a link of your own, against an objective.",
+        "operationId": "SaveResource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveResourceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources/{id}/done": {
+      "put": {
+        "tags": [
+          "Resources"
+        ],
+        "operationId": "SetResourceDone",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetResourceDoneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources/{id}": {
+      "delete": {
+        "tags": [
+          "Resources"
+        ],
+        "operationId": "DeleteResource",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/tokens": {
+      "get": {
+        "tags": [
+          "Access tokens"
+        ],
+        "operationId": "ListApiTokens",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTokenView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Access tokens"
+        ],
+        "summary": "Create a personal access token for connecting an AI assistant over MCP. The token is returned once.",
+        "operationId": "CreateApiToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedApiToken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tokens/{id}": {
+      "delete": {
+        "tags": [
+          "Access tokens"
+        ],
+        "operationId": "RevokeApiToken",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2078,6 +2315,48 @@
           "dueOn": {
             "type": "string",
             "format": "date"
+          }
+        }
+      },
+      "ApiTokenView": {
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "createdAt",
+          "expiresAt",
+          "lastUsedAt",
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
           }
         }
       },
@@ -2298,6 +2577,37 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "CreateApiTokenRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "lifetimeDays": {
+            "type": "integer",
+            "format": "int32",
+            "default": 90
+          }
+        }
+      },
+      "CreatedApiToken": {
+        "required": [
+          "details",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "$ref": "#/components/schemas/ApiTokenView"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },
@@ -3876,6 +4186,125 @@
           }
         }
       },
+      "ResourceKind": {
+        "enum": [
+          "LearnModule",
+          "Video",
+          "Link"
+        ]
+      },
+      "ResourceSuggestions": {
+        "required": [
+          "objectiveId",
+          "objective",
+          "learn",
+          "videos",
+          "youTubeAvailable",
+          "youTubeSearchUrl",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "objectiveId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objective": {
+            "type": "string"
+          },
+          "learn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedResource"
+            }
+          },
+          "videos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedResource"
+            }
+          },
+          "youTubeAvailable": {
+            "type": "boolean"
+          },
+          "youTubeSearchUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ResourceView": {
+        "required": [
+          "id",
+          "certificationId",
+          "objectiveId",
+          "kind",
+          "title",
+          "url",
+          "source",
+          "summary",
+          "durationMinutes",
+          "done",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ResourceKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "source": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "durationMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ReviewCard": {
         "required": [
           "id",
@@ -4168,6 +4597,60 @@
           }
         }
       },
+      "SaveResourceRequest": {
+        "required": [
+          "certificationId",
+          "objectiveId",
+          "kind",
+          "title",
+          "url",
+          "source",
+          "summary",
+          "durationMinutes"
+        ],
+        "type": "object",
+        "properties": {
+          "certificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "objectiveId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ResourceKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "durationMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "SearchHit": {
         "required": [
           "chunkId",
@@ -4395,6 +4878,17 @@
           }
         }
       },
+      "SetResourceDoneRequest": {
+        "required": [
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "done": {
+            "type": "boolean"
+          }
+        }
+      },
       "SkillAreaDraft": {
         "required": [
           "name",
@@ -4510,6 +5004,49 @@
             "format": "int32"
           },
           "studiedToday": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SuggestedResource": {
+        "required": [
+          "kind",
+          "title",
+          "url",
+          "source",
+          "summary",
+          "durationMinutes",
+          "saved"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ResourceKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "source": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "durationMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "saved": {
             "type": "boolean"
           }
         }
@@ -4645,6 +5182,12 @@
     },
     {
       "name": "Career"
+    },
+    {
+      "name": "Resources"
+    },
+    {
+      "name": "Access tokens"
     }
   ]
 }

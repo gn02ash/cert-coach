@@ -1,3 +1,4 @@
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Certifications.Outlines;
 using CertCoach.Application.Certifications.Outlines.Import;
@@ -15,12 +16,16 @@ internal static class CertificationEndpoints
 
         api.MapPost("/outlines/parse-ai", (ParseOutlineRequest request, AiOutlineParser parser, CancellationToken ct) =>
                 parser.ParseAsync(request.Text, ct))
+            .RequireRateLimiting(RateLimits.Costly)
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("ParseOutlineWithAi")
             .WithTags("Certifications")
             .WithSummary("Parse an outline in any layout with the chat model. Needs a chat provider.");
 
         api.MapPost("/outlines/import-url", (ImportOutlineRequest request, OutlineImporter importer, CancellationToken ct) =>
                 importer.ImportAsync(request.Url, ct))
+            .RequireRateLimiting(RateLimits.Costly)
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("ImportOutlineFromUrl")
             .WithTags("Certifications")
             .WithSummary("Create an outline draft from an exam page, study guide or exam guide PDF.")

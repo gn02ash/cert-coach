@@ -820,6 +820,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/resources/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Microsoft Learn modules and YouTube videos that cover an objective.
+         * @description Learn modules come from Microsoft's public catalogue. YouTube results need YOUTUBE_API_KEY; a search link is always returned.
+         */
+        get: operations["SuggestResources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListResources"];
+        put?: never;
+        /** Save a suggested resource, or a link of your own, against an objective. */
+        post: operations["SaveResource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/resources/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SetResourceDone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/resources/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["DeleteResource"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListApiTokens"];
+        put?: never;
+        /** Create a personal access token for connecting an AI assistant over MCP. The token is returned once. */
+        post: operations["CreateApiToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tokens/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["RevokeApiToken"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -872,6 +974,19 @@ export interface components {
             intervalDays: number;
             /** Format: date */
             dueOn: string;
+        };
+        ApiTokenView: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            prefix: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            lastUsedAt: null | string;
+            active: boolean;
         };
         AskRequest: {
             question: string;
@@ -931,6 +1046,18 @@ export interface components {
             objectiveCount: number;
             /** Format: uuid */
             activePlanId: null | string;
+        };
+        CreateApiTokenRequest: {
+            name: string;
+            /**
+             * Format: int32
+             * @default 90
+             */
+            lifetimeDays: number;
+        };
+        CreatedApiToken: {
+            details: components["schemas"]["ApiTokenView"];
+            token: string;
         };
         CreatePracticeItemRequest: {
             /** Format: uuid */
@@ -1359,6 +1486,38 @@ export interface components {
             /** Format: uuid */
             addedCertificationId: null | string;
         };
+        /** @enum {unknown} */
+        ResourceKind: "LearnModule" | "Video" | "Link";
+        ResourceSuggestions: {
+            /** Format: uuid */
+            objectiveId: string;
+            objective: string;
+            learn: components["schemas"]["SuggestedResource"][];
+            videos: components["schemas"]["SuggestedResource"][];
+            youTubeAvailable: boolean;
+            /** Format: uri */
+            youTubeSearchUrl: string;
+            notes: string[];
+        };
+        ResourceView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            kind: components["schemas"]["ResourceKind"];
+            title: string;
+            /** Format: uri */
+            url: string;
+            source: string;
+            summary: null | string;
+            /** Format: int32 */
+            durationMinutes: null | number;
+            done: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
         ReviewCard: {
             /** Format: uuid */
             id: string;
@@ -1432,6 +1591,19 @@ export interface components {
             yearsExperience: null | number;
             targetRole: null | string;
         };
+        SaveResourceRequest: {
+            /** Format: uuid */
+            certificationId: string;
+            /** Format: uuid */
+            objectiveId: null | string;
+            kind: components["schemas"]["ResourceKind"];
+            title: string;
+            url: string;
+            source: null | string;
+            summary: null | string;
+            /** Format: int32 */
+            durationMinutes: null | number;
+        };
         SearchHit: {
             /** Format: uuid */
             chunkId: string;
@@ -1496,6 +1668,9 @@ export interface components {
         SetPracticeItemStatusRequest: {
             status: components["schemas"]["PracticeItemStatus"];
         };
+        SetResourceDoneRequest: {
+            done: boolean;
+        };
         SkillAreaDraft: {
             name: string;
             objectives: string[];
@@ -1534,6 +1709,17 @@ export interface components {
             /** Format: int32 */
             longest: number;
             studiedToday: boolean;
+        };
+        SuggestedResource: {
+            kind: components["schemas"]["ResourceKind"];
+            title: string;
+            /** Format: uri */
+            url: string;
+            source: string;
+            summary: null | string;
+            /** Format: int32 */
+            durationMinutes: null | number;
+            saved: boolean;
         };
         TimeZoneRequest: {
             timeZone: string;
@@ -2932,6 +3118,184 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdviceView"];
                 };
+            };
+        };
+    };
+    SuggestResources: {
+        parameters: {
+            query: {
+                objectiveId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceSuggestions"];
+                };
+            };
+        };
+    };
+    ListResources: {
+        parameters: {
+            query: {
+                certificationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceView"][];
+                };
+            };
+        };
+    };
+    SaveResource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveResourceRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceView"];
+                };
+            };
+        };
+    };
+    SetResourceDone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetResourceDoneRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceView"];
+                };
+            };
+        };
+    };
+    DeleteResource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListApiTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiTokenView"][];
+                };
+            };
+        };
+    };
+    CreateApiToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateApiTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedApiToken"];
+                };
+            };
+        };
+    };
+    RevokeApiToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -12,5 +12,6 @@ RUN npm run build
 
 FROM nginx:1.28-alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/security-headers.conf docker/app-csp.conf /etc/nginx/
 COPY --from=build /repo/web/dist /usr/share/nginx/html
 EXPOSE 80

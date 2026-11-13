@@ -95,10 +95,19 @@ public sealed class CertCoachApiFactory : WebApplicationFactory<Program>, IAsync
         builder.ConfigureTestServices(services =>
         {
             services.AddSingleton<TimeProvider>(Clock);
+
+            // No test reaches the internet: the Learn catalogue is "unreachable" unless a test supplies one.
+            services.AddSingleton<CertCoach.Application.Resources.ILearnCatalog>(new NoCatalog());
             services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, TestUserHandler>(TestUserHandler.SchemeName, _ => { });
             services.Configure<AuthenticationOptions>(options => options.DefaultScheme = TestUserHandler.SchemeName);
         });
+    }
+
+    private sealed class NoCatalog : CertCoach.Application.Resources.ILearnCatalog
+    {
+        public Task<CertCoach.Application.Resources.LearnIndex?> GetAsync(CancellationToken ct) =>
+            Task.FromResult<CertCoach.Application.Resources.LearnIndex?>(null);
     }
 
     /// <summary>Authenticates from the test header, or defers to the real session cookie.</summary>

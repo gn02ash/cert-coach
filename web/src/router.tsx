@@ -5,6 +5,7 @@ import { AskPage } from "./pages/AskPage";
 import { CareerPage } from "./pages/CareerPage";
 import { CertificationEditorPage } from "./pages/CertificationEditorPage";
 import { CertificationsPage } from "./pages/CertificationsPage";
+import { ConnectPage } from "./pages/ConnectPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -12,6 +13,7 @@ import { NewPlanPage } from "./pages/NewPlanPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlanPage } from "./pages/PlanPage";
 import { PracticeItemsPage } from "./pages/PracticeItemsPage";
+import { ResourcesPage } from "./pages/ResourcesPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { MockExamPage } from "./pages/MockExamPage";
 import { MockExamStartPage } from "./pages/MockExamStartPage";
@@ -32,12 +34,14 @@ export const router = createBrowserRouter([
       { path: "certifications/:id", element: <CertificationEditorPage /> },
       { path: "certifications/:id/plan", element: <NewPlanPage /> },
       { path: "certifications/:id/practice", element: <PracticeItemsPage /> },
+      { path: "certifications/:id/resources", element: <ResourcesPage /> },
       { path: "plans/:id", element: <PlanPage /> },
       { path: "review", element: <ReviewPage /> },
       { path: "mock-exams/new", element: <MockExamStartPage /> },
       { path: "mock-exams/:id", element: <MockExamPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "career", element: <CareerPage /> },
+      { path: "connect", element: <ConnectPage /> },
       { path: "search", element: <SearchPage /> },
       { path: "ask", element: <AskPage /> },
       { path: "*", element: <NotFoundPage /> },

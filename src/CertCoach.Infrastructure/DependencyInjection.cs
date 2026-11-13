@@ -3,17 +3,20 @@ using CertCoach.Application.Certifications.Outlines.Import;
 using CertCoach.Application.Documents;
 using CertCoach.Application.Documents.Ingestion;
 using CertCoach.Application.Practice.Generation;
+using CertCoach.Application.Resources;
 using CertCoach.Application.Search;
 using CertCoach.Infrastructure.Ai;
 using CertCoach.Infrastructure.Documents;
 using CertCoach.Infrastructure.Persistence;
 using CertCoach.Infrastructure.Practice;
+using CertCoach.Infrastructure.Resources;
 using CertCoach.Infrastructure.Search;
 using CertCoach.Infrastructure.Storage;
 using CertCoach.Infrastructure.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CertCoach.Infrastructure;
 
@@ -49,6 +52,16 @@ public static class DependencyInjection
         {
             services.AddHostedService<IngestionWorker>();
         }
+
+        // Fixed, public hosts, so these don't need the private-network guard that user-supplied URLs get.
+        services.AddHttpClient(MicrosoftLearnCatalog.ClientName, http => http.Timeout = TimeSpan.FromSeconds(60));
+        services.AddHttpClient(YouTubeVideoSearch.ClientName, http => http.Timeout = TimeSpan.FromSeconds(15));
+        services.AddSingleton<ILearnCatalog, MicrosoftLearnCatalog>();
+        services.AddSingleton<IVideoSearch>(sp => new YouTubeVideoSearch(
+            sp.GetRequiredService<IHttpClientFactory>(),
+            configuration["Resources:YouTube:ApiKey"],
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<ILogger<YouTubeVideoSearch>>()));
 
         services.AddSingleton<GenerationSignal>();
         services.AddSingleton<IGenerationSignal>(sp => sp.GetRequiredService<GenerationSignal>());

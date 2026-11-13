@@ -1,3 +1,4 @@
+using CertCoach.Api.Infrastructure;
 using CertCoach.Application.Careers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,7 @@ internal static class CareerEndpoints
             .WithName("DeleteCareerProfile");
 
         group.MapPost("/cv/text", (ReadCvTextRequest request, CareerService service, CancellationToken ct) => service.ReadCvAsync(request.Text, ct))
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("ReadCvText")
             .WithSummary("Read a pasted CV into a draft profile. The CV is not stored.")
             .WithDescription("With a chat provider the text is sent to it to be read; without one, known skills, job titles and exam codes are matched.");
@@ -33,6 +35,7 @@ internal static class CareerEndpoints
                 await using var content = file.OpenReadStream();
                 return await service.ReadCvPdfAsync(content, ct);
             })
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("ReadCvFile")
             .WithSummary("Read a CV uploaded as a PDF into a draft profile. The file is read in memory and not stored.")
             .Accepts<IFormFile>("multipart/form-data")
@@ -45,6 +48,7 @@ internal static class CareerEndpoints
             .WithSummary("Certifications from the built-in catalogue ranked for the saved profile, with the reasons for each score.");
 
         group.MapPost("/recommendations/advice", (CareerService service, CancellationToken ct) => service.AdviseAsync(ct))
+            .RequireRateLimiting(RateLimits.Costly)
             .WithName("GetRecommendationAdvice")
             .WithSummary("The chat model's order and reasons for the recommended certifications. Needs a chat provider.");
 

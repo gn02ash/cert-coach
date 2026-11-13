@@ -13,6 +13,7 @@ using CertCoach.Application.Practice;
 using CertCoach.Application.Practice.Exams;
 using CertCoach.Application.Practice.Generation;
 using CertCoach.Application.Practice.Readiness;
+using CertCoach.Application.Resources;
 using CertCoach.Application.Search;
 using CertCoach.Application.Users;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,9 @@ public static class DependencyInjection
         services.AddScoped<ActivityService>();
         services.AddScoped<CareerAi>();
         services.AddScoped<CareerService>();
+        services.AddScoped<ResourceService>();
         services.AddScoped<UserAccountService>();
+        services.AddScoped<ApiTokenService>();
         services.AddScoped<DocumentService>();
         services.AddScoped<PracticeService>();
         services.AddScoped<ReviewService>();

@@ -24,6 +24,12 @@ import {
   type ReadinessReport,
   type ActivityView,
   type AdviceView,
+  type ApiTokenView,
+  type CreateApiTokenRequest,
+  type CreatedApiToken,
+  type ResourceSuggestions,
+  type ResourceView,
+  type SaveResourceRequest,
   type ProfileDraft,
   type ProfileView,
   type RecommendationsView,
@@ -405,3 +411,77 @@ export const useRecommendations = () =>
 
 export const useAdvice = () =>
   useMutation({ mutationFn: () => api<AdviceView>("/api/career/recommendations/advice", "POST") });
+
+const resourceKeys = {
+  saved: (certificationId: string) => ["resources", certificationId] as const,
+  suggestions: (objectiveId: string) => ["resource-suggestions", objectiveId] as const,
+};
+
+export const useResources = (certificationId: string) =>
+  useQuery({
+    queryKey: resourceKeys.saved(certificationId),
+    queryFn: () => api<ResourceView[]>(`/api/resources?certificationId=${certificationId}`),
+    enabled: !!certificationId,
+  });
+
+export const useResourceSuggestions = (objectiveId: string) =>
+  useQuery({
+    queryKey: resourceKeys.suggestions(objectiveId),
+    queryFn: () => api<ResourceSuggestions>(`/api/resources/suggestions?objectiveId=${objectiveId}`),
+    enabled: !!objectiveId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+export function useSaveResource() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: SaveResourceRequest) => api<ResourceView>("/api/resources", "POST", request),
+    onSuccess: (resource) => {
+      void client.invalidateQueries({ queryKey: resourceKeys.saved(resource.certificationId) });
+      if (resource.objectiveId) void client.invalidateQueries({ queryKey: resourceKeys.suggestions(resource.objectiveId) });
+    },
+  });
+}
+
+export function useSetResourceDone() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, done }: { id: string; done: boolean }) => api<ResourceView>(`/api/resources/${id}/done`, "PUT", { done }),
+    // The reply is the saved resource, so the list is updated from it without another request.
+    onSuccess: (resource) =>
+      client.setQueryData<ResourceView[]>(resourceKeys.saved(resource.certificationId), (list) =>
+        list?.map((r) => (r.id === resource.id ? resource : r)),
+      ),
+  });
+}
+
+export function useDeleteResource(certificationId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/api/resources/${id}`, "DELETE"),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: resourceKeys.saved(certificationId) });
+      void client.invalidateQueries({ queryKey: ["resource-suggestions"] });
+    },
+  });
+}
+
+const tokenKey = ["api-tokens"] as const;
+
+export const useApiTokens = () => useQuery({ queryKey: tokenKey, queryFn: () => api<ApiTokenView[]>("/api/tokens") });
+
+export function useCreateApiToken() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (request: CreateApiTokenRequest) => api<CreatedApiToken>("/api/tokens", "POST", request),
+    onSuccess: () => client.invalidateQueries({ queryKey: tokenKey }),
+  });
+}
+
+export function useRevokeApiToken() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/api/tokens/${id}`, "DELETE"),
+    onSuccess: () => client.invalidateQueries({ queryKey: tokenKey }),
+  });
+}

@@ -4,6 +4,7 @@ using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
 using CertCoach.Domain.Planning;
 using CertCoach.Domain.Practice;
+using CertCoach.Domain.Resources;
 using CertCoach.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,6 +38,10 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
 
     public DbSet<CareerProfile> CareerProfiles => Set<CareerProfile>();
 
+    public DbSet<StudyResource> StudyResources => Set<StudyResource>();
+
+    public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
+
     private Guid? OwnerFilter => currentUser?.UserId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -54,6 +59,8 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
         modelBuilder.Entity<ReviewLog>().HasQueryFilter(r => OwnerFilter == null || r.OwnerId == OwnerFilter);
         modelBuilder.Entity<MockExam>().HasQueryFilter(e => OwnerFilter == null || e.OwnerId == OwnerFilter);
         modelBuilder.Entity<CareerProfile>().HasQueryFilter(p => OwnerFilter == null || p.OwnerId == OwnerFilter);
+        modelBuilder.Entity<StudyResource>().HasQueryFilter(r => OwnerFilter == null || r.OwnerId == OwnerFilter);
+        modelBuilder.Entity<ApiToken>().HasQueryFilter(t => OwnerFilter == null || t.OwnerId == OwnerFilter);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

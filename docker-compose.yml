@@ -43,6 +43,7 @@ services:
       Ai__Embeddings__Model: ${AI_EMBEDDINGS_MODEL:-}
       Ai__Embeddings__ApiKey: ${AI_EMBEDDINGS_API_KEY:-}
       Ai__Embeddings__Endpoint: ${AI_EMBEDDINGS_ENDPOINT:-}
+      Resources__YouTube__ApiKey: ${YOUTUBE_API_KEY:-}
     volumes:
       - keys:/keys
       - uploads:/data/uploads

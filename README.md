@@ -6,7 +6,7 @@ A personal certification study assistant. Give it the exam's page or paste its o
 
 Upload your study PDFs and ask questions about them. Answers come only from your documents, with a citation to the page for every claim, and when your documents don't cover a question it says so instead of guessing.
 
-Then practise: exam-style questions and flashcards written from your documents, reviewed on a spaced-repetition schedule, timed mock exams drawn by domain weight, and a readiness score per exam domain.
+Then practise: exam-style questions and flashcards written from your documents, reviewed on a spaced-repetition schedule, timed mock exams drawn by domain weight, and a readiness score per exam domain. Find Microsoft Learn modules and videos for each objective, see which certification to take next from your CV, and study from an AI assistant such as Claude through Cert Coach's MCP server.
 
 ![Today's session, progress and domain coverage](docs/screenshots/4-dashboard.png)
 
@@ -34,6 +34,10 @@ Then practise: exam-style questions and flashcards written from your documents, 
 ![The dashboard after practising: study streak, activity calendar and readiness per domain](docs/screenshots/13-dashboard-practice.png)
 
 ![A profile read from the sample CV and the certifications ranked for it, with reasons](docs/screenshots/14-career.png)
+
+| Resources for an objective | Connect an AI assistant |
+|---|---|
+| ![Microsoft Learn suggestions and saved links for one objective](docs/screenshots/15-resources.png) | ![The Connect page with a personal access token in use](docs/screenshots/16-connect.png) |
 
 The screenshots are taken by the end-to-end test in CI against `docker compose up`, in offline mode, so Ask shows quoted sentences rather than a written answer and practice items are fill-in-the-blank.
 
@@ -76,12 +80,18 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - **Edit any item.** Fix a question, its options, the correct answers or the explanation in place. The review schedule is kept.
 - **Export to Anki.** A certification's active items as a text file for Anki's File → Import, tagged with the exam code and domain.
 
-**Phase 4: what to take next** (this release)
+**Phase 4: what to take next**
 
 - **Profile from your CV.** Paste your CV or upload it as a PDF and Cert Coach reads your skills, roles, years of experience and certifications into a profile you can edit. The CV itself is never stored. Without a chat model it is read on the server by matching known skills, job titles and exam codes; with one, the model reads it, and the page tells you first that the text goes to that provider.
 - **Ranked recommendations.** Certifications from a built-in catalogue of 47 public exams (Microsoft, AWS, Google Cloud, Linux Foundation, HashiCorp, CompTIA), each checked against its vendor page. Every score is explained: what you already know, what you'd learn, whether it suits your role or the one you're aiming for, and what it follows or is usually taken after.
 - **AI advice, on request.** With a chat model, **Explain with AI** orders and explains the same candidates for your profile. It can't add an exam that isn't in the catalogue.
 - **One click to start.** **Add to my certifications** opens the editor with the exam's details and official page filled in, ready for **Import from URL**.
+
+**Phase 5: resources and assistants** (this release)
+
+- **Resources per objective.** Microsoft Learn modules that cover an objective, from Microsoft's public catalogue, and YouTube videos when you set a `YOUTUBE_API_KEY` (a search link otherwise). Save them, add links of your own, and tick them off. Today's session links to its objective's resources.
+- **An MCP server.** Connect Claude Code, Claude Desktop or another MCP client and study in chat: today's session, readiness, a search of your documents, and quizzes whose answers are recorded and rescheduled like any review. Assistants sign in with a personal access token you create and can revoke on the **Connect** page, and they can't edit or delete anything. See [Connect an AI assistant](#connect-an-ai-assistant).
+- **Security hardening.** Rate limits, a strict Content Security Policy and security headers, smaller request limits, and a [security policy](SECURITY.md) with what's protected and what to change before others can reach the app.
 
 **Roadmap**
 
@@ -89,7 +99,7 @@ The screenshots are taken by the end-to-end test in CI against `docker compose u
 - [x] Phase 3: generated practice questions and flashcards, SM-2 spaced repetition, mock exams, readiness score per domain, outline import from a URL
 - [x] Study tools: weak-spot practice, study streak, calendar export, item editing, Anki export
 - [x] Phase 4: certification recommendations from your CV
-- [ ] Phase 5: Microsoft Learn and YouTube resources per objective, and an MCP server (`get_today_session`, `quiz_me`, …)
+- [x] Phase 5: Microsoft Learn and YouTube resources per objective, and an MCP server (`get_today_session`, `quiz_me`, …)
 
 ## Run it
 
@@ -99,7 +109,7 @@ You need [Docker](https://docs.docker.com/get-docker/). Then:
 docker compose up --build
 ```
 
-Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**. For recommendations, open **Career** and click **Use the sample CV**.
+Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**. For recommendations, open **Career** and click **Use the sample CV**. **Resources** on a certification finds study material per objective, and **Connect** sets up an AI assistant.
 
 Everything works without configuration, in offline mode. For AI answers and semantic search, copy [`.env.example`](.env.example) to `.env` and set the `AI_*` variables, for example:
 
@@ -138,7 +148,7 @@ The backend follows a layered, clean architecture. Dependencies point inward, an
 
 ```mermaid
 flowchart TB
-    Api["<b>Api</b><br/>minimal API endpoints, auth (BFF), problem details"]
+    Api["<b>Api</b><br/>minimal API endpoints, MCP server, auth (BFF and tokens),<br/>rate limits, problem details"]
     Infrastructure["<b>Infrastructure</b><br/>EF Core + Npgsql + pgvector, ingestion and generation workers,<br/>PdfPig, AngleSharp, AI providers, file storage"]
     Application["<b>Application</b><br/>use-case services, outline parsers and importer, chunker,<br/>hybrid search, grounded answers, item writers, readiness, ports"]
     Domain["<b>Domain</b><br/>Certification outline, StudyPlan, PlanScheduler, Document,<br/>PracticeItem, SM-2, MockExam"]
@@ -156,7 +166,8 @@ src/
                              question writers, review queue, exam blueprint, readiness, ports
   CertCoach.Infrastructure/  DbContext, mappings, migrations, PDF and HTML extraction, safe page fetcher,
                              ingestion and generation workers, AI providers
-  CertCoach.Api/             endpoints (incl. server-sent events), sign-in, errors; emits openapi.json at build time
+  CertCoach.Api/             endpoints (incl. server-sent events), MCP tools, sign-in and tokens, rate limits, errors;
+                             emits openapi.json at build time
 tests/
   CertCoach.Domain.Tests/          scheduler, rescheduling, document lifecycle, practice items, SM-2, mock exams (unit)
   CertCoach.Application.Tests/     outline parsers and importer, chunker, rank fusion, prompts and citations,
@@ -249,6 +260,10 @@ flowchart LR
 | **A CV is read, not kept** | The file and its text are held in memory for one request and discarded. Only the profile the learner saves is stored, and it can be deleted. The model is told to return no names or contact details. |
 | **Recommendations from a catalogue, not from a model's memory** | Exam line-ups change: checking the catalogue against vendor pages removed six retired exams a model would happily have suggested. The scorer and the model can only rank catalogue entries, and each links to its official page. |
 | **Explainable scoring before AI** | Fixed rules rank the catalogue (skill overlap with the platform weighted, role, path, level against experience), so it works offline and every score can be traced. The model only orders and explains those candidates. |
+| **MCP inside the API, not beside it** | The MCP tools call the same services as the web app, as the token's owner, so an assistant sees exactly what the learner sees, with the same ownership checks. Stateless HTTP needs nothing installed beside the client. |
+| **Tokens for assistants, cookies for the browser** | Each scheme is accepted on one surface only, so a token copied into a config file can't manage tokens or reach the rest of the API, and a browser session can't drive the MCP tools. Only a hash of each token is stored. |
+| **Assistants can study, not edit** | The MCP tools read, quiz and mark sessions done. Generating, editing and deleting stay in the app, where the learner sees what changes. |
+| **Learn modules matched without a model** | Microsoft's public catalogue is downloaded once a day and matched by the objective's distinctive words, so suggestions cost nothing and work offline after the first download. The threshold was tuned against the real catalogue, preferring no suggestion to an off-topic one. |
 | **Calendar as a file, not a feed** | A subscription URL would need a long-lived secret in the link, since calendar apps can't send the session cookie. A download with stable event UIDs covers the need without one. |
 | **SM-2, logged** | A well-understood scheduler that's easy to test, with every answer in `review_logs`, so readiness is computed from history rather than stored and drifting. |
 
@@ -268,8 +283,39 @@ All settings are environment variables (`.env` for Docker Compose). No secrets a
 | `AI_CHAT_MODEL`, `AI_CHAT_API_KEY`, `AI_CHAT_ENDPOINT` | empty | Model (Anthropic defaults to `claude-opus-5-5`; for Azure, the deployment name), key, and endpoint for Azure or OpenAI-compatible servers |
 | `AI_EMBEDDINGS_PROVIDER` | `Offline` | Who embeds your documents: `AzureOpenAI`, `OpenAICompatible` or `Offline` |
 | `AI_EMBEDDINGS_MODEL`, `AI_EMBEDDINGS_API_KEY`, `AI_EMBEDDINGS_ENDPOINT` | empty | Deployment name (for example `text-embedding-3-small`), key and endpoint. Vectors are stored at 1536 dimensions. |
+| `YOUTUBE_API_KEY` | empty | A YouTube Data API v3 key, to list videos per objective. Without it, Resources shows a YouTube search link. Each search uses 100 of the 10,000 free daily units. |
 
-The API checks these settings at startup and lists every missing one by name. `GET /api/ai/status` shows which providers are active.
+The API checks these settings at startup and lists every missing one by name. `GET /api/ai/status` shows which providers are active. Rate limits are set under `RateLimiting` (see [SECURITY.md](SECURITY.md)).
+
+### Connect an AI assistant
+
+Cert Coach serves the [Model Context Protocol](https://modelcontextprotocol.io) at `/mcp`, so an assistant can work with your study plan.
+
+1. Open **Connect** in the app, name a token, and create it. Copy it: it is shown once.
+2. Add the server to your client. For Claude Code, the page shows the exact command:
+
+   ```bash
+   claude mcp add --transport http cert-coach http://localhost:8080/mcp --header "Authorization: Bearer <your token>"
+   ```
+
+   Other clients take the same address, the HTTP transport and that header; the page also shows a JSON config.
+3. Ask things like *"What should I study today?"*, *"Quiz me on AI-103, five questions"* or *"How ready am I for each domain?"*.
+
+| Tool | What it does |
+|---|---|
+| `list_certifications` | The certifications you're studying |
+| `get_today_session` | Today's sessions and objectives, what's next, days to the exam, items due |
+| `get_readiness` | Readiness per exam domain |
+| `search_materials` | Passages from your documents, with page numbers |
+| `quiz_me` | Questions and flashcards, without the answers |
+| `answer_question` | Checks and records your answer, which reschedules the item |
+| `complete_session` | Marks a study session done |
+
+An assistant can't edit or delete anything. Revoke a token on the Connect page and it stops working at once.
+
+## Security
+
+Sign-in uses an `HttpOnly` cookie the page's scripts can't read, and state-changing requests need an anti-forgery header. Every query is scoped to its owner, CVs are never stored, outline imports can't reach private networks, and model output is checked before use. Requests are rate limited, pages carry a strict Content Security Policy, and secrets stay in `.env`. [SECURITY.md](SECURITY.md) has the details, how to report a problem, and **what to change before anyone else can reach the app**, starting with turning off the passwordless dev login.
 
 ### Sign in with Microsoft (Entra ID)
 
