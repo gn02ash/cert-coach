@@ -321,3 +321,16 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 .token-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
 .token-row code { padding: 0.4rem 0.6rem; background: var(--surface-2); border-radius: 6px; overflow-wrap: anywhere; }
 .snippet { margin: 0; padding: 0.6rem 0.75rem; background: var(--surface-2); border-radius: 8px; font-size: 0.8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Welcome tour */
+.tour { position: fixed; inset: 0; z-index: 100; }
+.tour-backdrop { position: absolute; inset: 0; background: rgb(15 20 30 / 0.45); }
+.tour-spotlight { position: fixed; border-radius: 10px; box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgb(15 20 30 / 0.25); pointer-events: none; transition: all 0.2s ease; }
+.tour-card { position: fixed; width: min(360px, calc(100vw - 32px)); background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow), 0 12px 32px rgb(0 0 0 / 0.2); padding: 1rem 1.1rem; display: grid; gap: 0.6rem; transition: top 0.2s ease, left 0.2s ease; }
+.tour-card:focus { outline: none; }
+.tour-card p { margin: 0; }
+.tour-title { font-size: 1.1rem; margin: 0; }
+.tour-dots { display: flex; gap: 0.3rem; }
+.tour-dots span { width: 6px; height: 6px; border-radius: 999px; background: var(--border); }
+.tour-dots span.active { background: var(--accent); width: 16px; }
+@media (prefers-reduced-motion: reduce) { .tour-spotlight, .tour-card { transition: none; } }

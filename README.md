@@ -35,6 +35,8 @@ Then practise: exam-style questions and flashcards written from your documents, 
 
 ![A profile read from the sample CV and the certifications ranked for it, with reasons](docs/screenshots/14-career.png)
 
+![The welcome tour pointing at Certifications, the first step](docs/screenshots/17-tour.png)
+
 | Resources for an objective | Connect an AI assistant |
 |---|---|
 | ![Microsoft Learn suggestions and saved links for one objective](docs/screenshots/15-resources.png) | ![The Connect page with a personal access token in use](docs/screenshots/16-connect.png) |
@@ -109,7 +111,7 @@ You need [Docker](https://docs.docker.com/get-docker/). Then:
 docker compose up --build
 ```
 
-Open <http://localhost:8080>, choose **Local dev login**, go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**. For recommendations, open **Career** and click **Use the sample CV**. **Resources** on a certification finds study material per objective, and **Connect** sets up an AI assistant.
+Open <http://localhost:8080> and choose **Local dev login**. A short welcome tour shows where everything is (replay it any time from **Tour** at the top). Then go to **Certifications → Add certification** and click **Use the sample outline** (or import a real exam with **Import from URL**). To try Search and Ask, upload [`samples/DEMO-101-rag-notes.pdf`](samples/DEMO-101-rag-notes.pdf) in **Library**. Then open the certification's **Practice items**, click **Generate**, and go to **Review**. For recommendations, open **Career** and click **Use the sample CV**. **Resources** on a certification finds study material per objective, and **Connect** sets up an AI assistant.
 
 Everything works without configuration, in offline mode. For AI answers and semantic search, copy [`.env.example`](.env.example) to `.env` and set the `AI_*` variables, for example:
 
