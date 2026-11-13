@@ -1,5 +1,6 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Ai;
+using CertCoach.Application.Billing;
 using CertCoach.Application.Common;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Common;
@@ -10,7 +11,13 @@ namespace CertCoach.Application.Practice.Generation;
 
 /// <summary>Starts, follows and cancels generation runs, and works through a run for the background worker.</summary>
 public sealed class GenerationService(
-    ICertCoachDbContext db, ICurrentUser user, UserClock clock, IGenerationSignal signal, ItemGenerator generator, AiCapabilities capabilities)
+    ICertCoachDbContext db,
+    ICurrentUser user,
+    UserClock clock,
+    IGenerationSignal signal,
+    ItemGenerator generator,
+    AiCapabilities capabilities,
+    AiAllowance allowance)
 {
     public const int RecentRuns = 5;
 
@@ -33,6 +40,12 @@ public sealed class GenerationService(
                 j => j.CertificationId == certification.Id && (j.Status == GenerationStatus.Queued || j.Status == GenerationStatus.Running), ct))
         {
             throw new ConflictException("Questions are already being written for this certification. Wait for that run, or cancel it.");
+        }
+
+        // Offline runs write fill-in-the-blank items without a model, so only AI runs need allowance left.
+        if (capabilities.ChatAvailable)
+        {
+            await allowance.EnsureAvailableAsync(ct);
         }
 
         var job = GenerationJob.Create(user.UserId, certification.Id, objectives, request.PerObjective, clock.Now);
@@ -112,7 +125,7 @@ public sealed class GenerationService(
             // Items not yet saved belong to the objective that failed; drop them with it.
             db.ChangeTracker.Clear();
             var failed = await db.GenerationJobs.SingleAsync(j => j.Id == jobId, ct);
-            failed.Fail(e is DomainException ? e.Message : $"Writing questions failed: {e.Message}", clock.Now);
+            failed.Fail(e is DomainException or AiAllowanceExceededException ? e.Message : $"Writing questions failed: {e.Message}", clock.Now);
             await db.SaveChangesAsync(ct);
             throw;
         }

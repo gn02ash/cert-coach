@@ -44,6 +44,9 @@ services:
       Ai__Embeddings__ApiKey: ${AI_EMBEDDINGS_API_KEY:-}
       Ai__Embeddings__Endpoint: ${AI_EMBEDDINGS_ENDPOINT:-}
       Resources__YouTube__ApiKey: ${YOUTUBE_API_KEY:-}
+      Billing__Enabled: ${BILLING_ENABLED:-false}
+      Billing__FreeMonthlyUnits: ${BILLING_FREE_MONTHLY_UNITS:-100000}
+      Billing__ProMonthlyUnits: ${BILLING_PRO_MONTHLY_UNITS:-1500000}
     volumes:
       - keys:/keys
       - uploads:/data/uploads

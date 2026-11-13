@@ -5,6 +5,7 @@ import {
   type CertificationDetail,
   type CertificationSummary,
   type AiCapabilities,
+  type AiAllowanceView,
   type DashboardView,
   type DocumentSummary,
   type OutlineDraft,
@@ -55,6 +56,7 @@ export const keys = {
   practiceItems: (certificationId: string) => ["practice-items", certificationId] as const,
   generations: (certificationId: string) => ["generations", certificationId] as const,
   aiStatus: ["ai-status"] as const,
+  aiAllowance: ["ai-allowance"] as const,
   search: (query: string, certificationId?: string) => ["search", query, certificationId ?? ""] as const,
 };
 
@@ -485,3 +487,11 @@ export function useRevokeApiToken() {
     onSuccess: () => client.invalidateQueries({ queryKey: tokenKey }),
   });
 }
+
+/** Refetched often enough to follow AI use without polling: on focus and after 30 seconds. */
+export const useAiAllowance = () =>
+  useQuery({
+    queryKey: keys.aiAllowance,
+    queryFn: () => api<AiAllowanceView>("/api/billing/allowance"),
+    staleTime: 30_000,
+  });

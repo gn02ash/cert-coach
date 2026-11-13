@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using CertCoach.Application.Ai;
+using CertCoach.Application.Billing;
 using CertCoach.Application.Search;
 using CertCoach.Domain.Common;
 using Microsoft.Extensions.AI;
@@ -11,7 +12,7 @@ namespace CertCoach.Application.Ask;
 /// Answers a question from the learner's documents: retrieve, decide whether anything is close enough to
 /// answer from, then stream either a model-written answer with citations or, offline, quoted sentences.
 /// </summary>
-public sealed class AskService(SearchService search, IChatClient chat, AiCapabilities capabilities)
+public sealed class AskService(SearchService search, IChatClient chat, AiCapabilities capabilities, AiAllowance allowance)
 {
     public const int MaxSources = 6;
     public const int MaxQuestionLength = 2000;
@@ -54,14 +55,17 @@ public sealed class AskService(SearchService search, IChatClient chat, AiCapabil
             yield break;
         }
 
-        if (!capabilities.ChatAvailable)
+        var allowanceLeft = capabilities.ChatAvailable && await allowance.HasRemainingAsync(ct);
+        if (!allowanceLeft)
         {
             var quoted = QuotedAnswer.Build(question, sources);
             yield return new AskDeltaEvent(quoted);
             yield return new AskDoneEvent(
                 AnswerKind.Quoted,
                 Citations.Cited(quoted, sources.Count),
-                "Offline mode: these are quotes from your documents, not a written answer. Configure a chat provider for AI answers.");
+                capabilities.ChatAvailable
+                    ? "You've used this month's AI allowance, so these are quotes from your documents rather than a written answer."
+                    : "Offline mode: these are quotes from your documents, not a written answer. Configure a chat provider for AI answers.");
             yield break;
         }
 

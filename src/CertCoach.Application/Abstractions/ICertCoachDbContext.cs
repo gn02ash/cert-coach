@@ -1,3 +1,4 @@
+using CertCoach.Domain.Billing;
 using CertCoach.Domain.Careers;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
@@ -40,6 +41,11 @@ public interface ICertCoachDbContext
     DbSet<StudyResource> StudyResources { get; }
 
     DbSet<ApiToken> ApiTokens { get; }
+
+    DbSet<BillingAccount> BillingAccounts { get; }
+
+    /// <summary>Read only here: <see cref="IAiUsageLedger"/> writes it.</summary>
+    DbSet<AiUsage> AiUsage { get; }
 
     /// <summary>For transactions and set-based updates that span more than one save.</summary>
     DatabaseFacade Database { get; }

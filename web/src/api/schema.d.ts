@@ -922,6 +922,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/billing/allowance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The learner's plan and how much of this month's AI allowance is used. Not enforced unless billing is on. */
+        get: operations["GetAiAllowance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -951,6 +968,20 @@ export interface components {
         AdviceView: {
             overview: string;
             items: components["schemas"]["AdviceItem"][];
+        };
+        AiAllowanceView: {
+            enforced: boolean;
+            plan: components["schemas"]["Plan"];
+            /** Format: date-time */
+            proUntil: null | string;
+            /** Format: int64 */
+            unitsUsed: number;
+            /** Format: int64 */
+            unitsAllowed: number;
+            /** Format: int32 */
+            percentUsed: number;
+            /** Format: date-time */
+            resetsAt: string;
         };
         AiCapabilities: {
             chatProvider: string;
@@ -1304,6 +1335,8 @@ export interface components {
         ParseOutlineRequest: {
             text: string;
         };
+        /** @enum {unknown} */
+        Plan: "Free" | "Pro";
         PlanDashboard: {
             /** Format: uuid */
             planId: string;
@@ -3296,6 +3329,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetAiAllowance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiAllowanceView"];
+                };
             };
         };
     };

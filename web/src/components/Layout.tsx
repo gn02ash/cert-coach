@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
-import { useDashboard, useLogout, useMe } from "../api/hooks";
+import { useAiAllowance, useDashboard, useLogout, useMe } from "../api/hooks";
 import { TourProvider, useStartTour } from "./WelcomeTour";
 
 export function Layout() {
@@ -58,6 +58,7 @@ function Shell() {
             </NavLink>
           </nav>
           <div className="user">
+            <AllowanceBadge />
             <span className="user-name">{me.data?.displayName}</span>
             <TourButton />
             <button
@@ -73,5 +74,23 @@ function Shell() {
         <Outlet />
       </main>
     </div>
+  );
+}
+
+/** How much of this month's AI allowance is used. Hidden when billing is off, as nothing is limited then. */
+function AllowanceBadge() {
+  const allowance = useAiAllowance().data;
+  if (!allowance?.enforced) {
+    return null;
+  }
+
+  const resets = new Date(allowance.resetsAt).toLocaleDateString(undefined, { day: "numeric", month: "long" });
+  return (
+    <span
+      className={`badge${allowance.percentUsed >= 80 ? " warning" : ""}`}
+      title={`${allowance.plan} plan: ${allowance.percentUsed}% of this month's AI allowance used. It resets on ${resets}.`}
+    >
+      {allowance.plan} · AI {allowance.percentUsed}%
+    </span>
   );
 }

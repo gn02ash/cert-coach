@@ -1,6 +1,7 @@
 using CertCoach.Application.Abstractions;
 using CertCoach.Application.Activity;
 using CertCoach.Application.Ask;
+using CertCoach.Application.Billing;
 using CertCoach.Application.Careers;
 using CertCoach.Application.Certifications;
 using CertCoach.Application.Certifications.Outlines;
@@ -51,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<AiOutlineParser>();
         services.AddScoped<OutlineAgent>();
         services.AddScoped<OutlineImporter>();
+        services.AddScoped<AiAllowance>();
         return services;
     }
 }

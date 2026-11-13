@@ -1,4 +1,5 @@
 using CertCoach.Application.Abstractions;
+using CertCoach.Domain.Billing;
 using CertCoach.Domain.Careers;
 using CertCoach.Domain.Certifications;
 using CertCoach.Domain.Documents;
@@ -41,6 +42,10 @@ public sealed class CertCoachDbContext(DbContextOptions<CertCoachDbContext> opti
     public DbSet<StudyResource> StudyResources => Set<StudyResource>();
 
     public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
+
+    public DbSet<BillingAccount> BillingAccounts => Set<BillingAccount>();
+
+    public DbSet<AiUsage> AiUsage => Set<AiUsage>();
 
     private Guid? OwnerFilter => currentUser?.UserId;
 
