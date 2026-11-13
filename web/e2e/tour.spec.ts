@@ -3,7 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 const shot = (page: Page, name: string) => page.screenshot({ path: `e2e-screenshots/${name}.png` });
 
 // A first visit: nothing in storage, so the tour opens by itself.
-test.use({ storageState: { cookies: [], origins: [] } });
+// Reduced motion also checks that the tour's animation turns off, and keeps the screenshot steady.
+test.use({ storageState: { cookies: [], origins: [] }, reducedMotion: "reduce" });
 
 test("the welcome tour opens on a first visit, walks through the app, and can be replayed", async ({ page }) => {
   await page.goto("/login");
@@ -15,14 +16,20 @@ test("the welcome tour opens on a first visit, walks through the app, and can be
   await tour.getByRole("button", { name: "Show me around" }).click();
 
   // Each stop points at its part of the navigation.
-  await expect(tour.getByRole("heading", { name: "1. Add your exam" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Add your exam" })).toBeVisible();
   await expect(page.locator(".tour-spotlight")).toBeVisible();
+
+  // The card sits just below the link it points at.
+  const link = (await page.locator('[data-tour="certifications"]').boundingBox())!;
+  const card = (await tour.boundingBox())!;
+  expect(card.y).toBeGreaterThan(link.y + link.height);
+  expect(card.y).toBeLessThan(link.y + link.height + 40);
   await shot(page, "17-tour");
 
   await page.keyboard.press("ArrowRight");
-  await expect(tour.getByRole("heading", { name: "2. Study a little every day" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Study a little every day" })).toBeVisible();
   await tour.getByRole("button", { name: "Back" }).click();
-  await expect(tour.getByRole("heading", { name: "1. Add your exam" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Add your exam" })).toBeVisible();
 
   for (let i = 0; i < 6; i++) await tour.getByRole("button", { name: "Next" }).click();
   await expect(tour.getByRole("heading", { name: "You're ready" })).toBeVisible();

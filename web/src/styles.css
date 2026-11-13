@@ -65,7 +65,10 @@ a { color: var(--accent); }
 .nav a { padding: 0.4rem 0.75rem; border-radius: 8px; color: var(--muted); text-decoration: none; font-weight: 500; }
 .nav a.active { background: var(--accent-soft); color: var(--accent); }
 .user { display: flex; align-items: center; gap: 0.75rem; }
-.user-name { color: var(--muted); font-size: 0.9rem; }
+.user-name { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
+.brand, .nav a, .user .button { white-space: nowrap; }
+/* Nine navigation links fill a laptop-width header; the name goes first. */
+@media (max-width: 1240px) { .user-name { display: none; } .topbar-inner { gap: 1rem; } .nav a { padding: 0.4rem 0.55rem; } }
 .content { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 .stack { display: flex; flex-direction: column; gap: 1rem; }
 .page-head, .plan-head, .row-between { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
@@ -324,8 +327,9 @@ code { font-size: 0.9em; background: var(--surface-2); padding: 0.05em 0.3em; bo
 
 /* Welcome tour */
 .tour { position: fixed; inset: 0; z-index: 100; }
-.tour-backdrop { position: absolute; inset: 0; background: rgb(15 20 30 / 0.45); }
-.tour-spotlight { position: fixed; border-radius: 10px; box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgb(15 20 30 / 0.25); pointer-events: none; transition: all 0.2s ease; }
+.tour-backdrop { position: absolute; inset: 0; }
+.tour-backdrop.dim { background: rgb(15 20 30 / 0.45); }
+.tour-spotlight { position: fixed; border-radius: 10px; box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgb(15 20 30 / 0.45); pointer-events: none; transition: all 0.2s ease; }
 .tour-card { position: fixed; width: min(360px, calc(100vw - 32px)); background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow), 0 12px 32px rgb(0 0 0 / 0.2); padding: 1rem 1.1rem; display: grid; gap: 0.6rem; transition: top 0.2s ease, left 0.2s ease; }
 .tour-card:focus { outline: none; }
 .tour-card p { margin: 0; }

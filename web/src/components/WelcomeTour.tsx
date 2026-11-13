@@ -80,7 +80,8 @@ function WelcomeTour({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="tour" role="presentation">
-      <div className="tour-backdrop" onClick={onClose} />
+      {/* With a target the spotlight's shadow dims the page and leaves the target clear; without one, the backdrop dims. */}
+      <div className={`tour-backdrop${target ? "" : " dim"}`} onClick={onClose} />
       {target && (
         <div
           className="tour-spotlight"

@@ -15,40 +15,40 @@ export const tourSteps: TourStep[] = [
   },
   {
     target: "certifications",
-    title: "1. Add your exam",
+    title: "Add your exam",
     body:
       "Start here. Add a certification by pasting its exam page or study guide address into Import from URL, or paste the skills " +
       "outline. Then set your exam date and weekly hours to get a plan. Each certification also has Practice items and Resources.",
   },
   {
     target: "today",
-    title: "2. Study a little every day",
+    title: "Study a little every day",
     body:
       "Today shows the session to do now, the week ahead, your study streak and how ready you are per exam domain. Mark sessions " +
       "Done or Missed; a missed day moves its work to the days left.",
   },
   {
     target: "library",
-    title: "3. Bring your own material",
+    title: "Bring your own material",
     body:
       "Upload your study PDFs to the Library. Search finds passages in them, and Ask answers questions from them with a citation " +
       "to the page for every claim, or says when your documents don't cover it.",
   },
   {
     target: "review",
-    title: "4. Practise until it sticks",
+    title: "Practise until it sticks",
     body:
       "Generate questions and flashcards from your documents on a certification's Practice items page. Review brings each one back " +
       "just before you'd forget it, and you can take timed mock exams weighted like the real one.",
   },
   {
     target: "career",
-    title: "5. Not sure which exam?",
+    title: "Not sure which exam?",
     body: "Career reads your CV into a profile and ranks certifications that fit your skills and the role you want, with the reasons.",
   },
   {
     target: "connect",
-    title: "6. Study from an AI assistant",
+    title: "Study from an AI assistant",
     body:
       "Connect gives Claude or another AI assistant access to your plan, so you can ask what to study today or be quizzed in chat. " +
       "It can't change or delete anything.",
